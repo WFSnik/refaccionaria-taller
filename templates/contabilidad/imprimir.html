@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block titulo %}Comprobante {{ factura.folio }}{% endblock %}
+{% block contenido %}
+<article>
+  <header class="encabezado">
+    <div>
+      <h1>Comprobante de venta {{ factura.folio }}</h1>
+      <p class="tenue">{{ factura.fecha|date:"j \d\e F \d\e Y, H:i" }} · Orden {{ factura.orden.folio }}</p>
+      <p>{{ factura.receptor_nombre }}{% if factura.receptor_rfc %} · RFC {{ factura.receptor_rfc }}{% endif %}<br>{{ factura.orden.vehiculo }}</p>
+    </div>
+    <button class="btn no-imprimir" type="button" onclick="print()">Imprimir</button>
+  </header>
+  <div class="tabla-marco">
+    <table>
+      <thead><tr><th>Concepto</th><th class="der">Cant.</th><th class="der">Precio</th><th class="der">Importe</th></tr></thead>
+      <tbody>
+        {% for l in factura.lineas.all %}
+        <tr><td>{{ l.descripcion }}</td><td class="der num">{{ l.cantidad }}</td><td class="der num">${{ l.precio_unitario|floatformat:"2g" }}</td><td class="der num">${{ l.importe|floatformat:"2g" }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <dl class="totales">
+    <dt>Subtotal</dt><dd>${{ factura.subtotal|floatformat:"2g" }}</dd>
+    <dt>IVA</dt><dd>${{ factura.iva|floatformat:"2g" }}</dd>
+    <dt class="total">Total</dt><dd class="total">${{ factura.total|floatformat:"2g" }}</dd>
+  </dl>
+  <p class="muy-tenue">Comprobante interno sin validez fiscal: no es un CFDI.</p>
+</article>
+{% endblock %}

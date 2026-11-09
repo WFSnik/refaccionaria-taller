@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block titulo %}Movimientos{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado">
+    <div>
+      <h1>Movimientos</h1>
+      <p class="tenue">Historial de altas y bajas. No se puede editar: cada corrección es un movimiento nuevo.</p>
+    </div>
+    <div class="acciones">
+      <a class="btn btn--primario" href="{% url 'movimiento_nuevo' %}"><svg class="i"><use href="#i-mas"/></svg> Alta o baja</a>
+    </div>
+  </header>
+
+  <form class="filtros" method="get" data-auto role="search">
+    <label class="buscador">
+      <svg class="i"><use href="#i-buscar"/></svg>
+      <input type="search" name="q" value="{{ q }}" placeholder="Producto, código o referencia" aria-label="Buscar movimientos">
+    </label>
+    <select name="tipo" aria-label="Tipo">
+      <option value="">Altas y bajas</option>
+      <option value="ALTA" {% if tipo == 'ALTA' %}selected{% endif %}>Solo altas</option>
+      <option value="BAJA" {% if tipo == 'BAJA' %}selected{% endif %}>Solo bajas</option>
+    </select>
+  </form>
+
+  {% if pagina.object_list %}
+  <div class="tabla-marco">
+    <table>
+      <thead><tr><th>Fecha</th><th>Producto</th><th>Tipo</th><th class="ocultar-movil">Motivo</th><th>Ubicación</th><th class="der">Cantidad</th><th class="der ocultar-movil">Stock después</th><th class="ocultar-movil">Usuario</th></tr></thead>
+      <tbody>
+        {% for m in pagina %}
+        <tr data-href="{% url 'producto_detalle' m.producto_id %}">
+          <td style="white-space:nowrap">{{ m.fecha|date:"j M, H:i" }}</td>
+          <td class="celda-producto"><strong>{{ m.producto.nombre }}</strong><span class="codigo">{{ m.producto.codigo }}</span></td>
+          <td><span class="chip chip--{{ m.tipo|lower }}">{{ m.get_tipo_display }}</span></td>
+          <td class="ocultar-movil">{{ m.get_motivo_display }}{% if m.referencia %}<br><span class="muy-tenue">{{ m.referencia }}</span>{% endif %}</td>
+          <td class="codigo">{{ m.ubicacion }}</td>
+          <td class="der num"><strong>{% if m.tipo == 'ALTA' %}+{% else %}−{% endif %}{{ m.cantidad }}</strong></td>
+          <td class="der num ocultar-movil">{{ m.stock_resultante }}</td>
+          <td class="ocultar-movil">{{ m.usuario }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "inventario/_paginacion.html" %}
+  {% else %}
+  <div class="panel vacio">
+    <svg class="i"><use href="#i-flechas"/></svg>
+    {% if q or tipo %}<p>No hay movimientos con esos filtros.</p><a class="btn" href="{% url 'movimientos_lista' %}">Quitar filtros</a>
+    {% else %}<p>Todavía no hay movimientos. La primera alta crea el stock.</p><a class="btn btn--primario" href="{% url 'movimiento_nuevo' %}?tipo=ALTA">Registrar alta</a>{% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

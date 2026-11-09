@@ -1,0 +1,15 @@
+{% autoescape off %}{% if alerta.origen == 'SIN_STOCK' %}Se intentó una baja sin stock suficiente.{% else %}Llegó a su punto de reorden.{% endif %}
+
+{{ producto.nombre }} · {{ producto.marca }}
+Código: {{ producto.codigo }}{% if producto.presentacion %} · {{ producto.presentacion }}{% endif %}{% if producto.especificacion %} · {{ producto.especificacion }}{% endif %}
+
+Stock: {{ stock }} (reorden en {{ reorden }})
+Sugerido pedir: {{ sugerido }} unidades · costo estimado ${{ costo_estimado|floatformat:"2g" }}
+
+Dónde está:
+{% for e in existencias %}  {{ e.ubicacion.codigo }}: {{ e.cantidad }}
+{% empty %}  Sin existencias.
+{% endfor %}
+Ver producto: {{ url_producto }}
+Todas las alertas: {{ url_alertas }}
+{% endautoescape %}

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block titulo %}Número de parte{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado">
+    <div>
+      <p class="muy-tenue"><a href="{% url 'catalogo_vehiculos' %}">¿Qué lleva el auto?</a></p>
+      <h1 style="margin-top:6px">Buscar por número de parte</h1>
+      <p class="tenue">Escribe el número del filtro viejo, de cualquier marca: Gonher, Fram o Wix.</p>
+    </div>
+  </header>
+
+  <form class="filtros" method="get" role="search">
+    <label class="buscador">
+      <svg class="i"><use href="#i-buscar"/></svg>
+      <input type="search" name="n" value="{{ n }}" placeholder="Ej. PH7317, GP-149, 51356" aria-label="Número de parte" autofocus>
+    </label>
+    <button class="btn btn--primario" type="submit">Buscar</button>
+  </form>
+
+  {% if resultado %}
+  {% for g in resultado.grupos %}
+  <section class="panel numero-grupo" style="--i:{{ forloop.counter0 }}">
+    <div class="panel__cab">
+      <h2>{{ g.tipo|default:"Filtro" }} <span class="codigo">Gonher {{ g.numero_gonher }}</span></h2>
+      <span class="muy-tenue">Le queda a {{ g.vehiculos_n }} versión{{ g.vehiculos_n|pluralize:"es" }} de vehículo</span>
+    </div>
+    <div class="panel__cuerpo numero-grupo__cuerpo">
+      <div>{% with o=g %}{% include "catalogo/_opcion.html" %}{% endwith %}</div>
+      {% if g.vehiculos %}
+      <div>
+        <h3 class="muy-tenue">Algunas aplicaciones</h3>
+        <ul class="aplicaciones">
+          {% for v in g.vehiculos %}<li><a href="{% url 'catalogo_vehiculos' %}?v={{ v.pk }}">{{ v.marca }} {{ v.modelo }} {{ v.anios }}</a> <span class="muy-tenue">{{ v.motor }}</span></li>{% endfor %}
+        </ul>
+        {% if g.vehiculos_n > g.vehiculos|length %}<p class="muy-tenue">y {{ g.vehiculos_n|add:"-30" }} más.</p>{% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </section>
+  {% endfor %}
+  {% if resultado.sin_catalogo %}
+  <section class="panel">
+    <div class="panel__cab"><h2>En inventario, fuera del catálogo</h2></div>
+    <ul class="lista panel__cuerpo">
+      {% for p in resultado.sin_catalogo %}<li><a class="crece" href="{% url 'producto_detalle' p.pk %}"><strong>{{ p.marca }} {{ p.numero_parte }}</strong></a><span class="num">{{ p.stock }}</span></li>{% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+  {% elif n %}
+  <div class="panel vacio">
+    <svg class="i"><use href="#i-bidon"/></svg>
+    <p>No encontramos el número «{{ n }}». Quedó en la lista <a href="{% url 'catalogo_pendientes' %}">sin respuesta</a>.</p>
+    <p class="muy-tenue">Por ahora hay equivalencias de Gonher con Fram (tabla oficial) y unas pocas de Wix.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

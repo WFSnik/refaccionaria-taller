@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado">
+    <div>
+      <h1>{{ titulo }}</h1>
+      {% if descripcion %}<p class="tenue texto-largo">{{ descripcion }}</p>{% endif %}
+    </div>
+  </header>
+  <form method="post" class="panel panel--form" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="errores-form">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="rejilla-form">
+      {% for campo in form %}{% include "inventario/_campo.html" %}{% endfor %}
+    </div>
+    <div class="paso__nav">
+      <a class="btn btn--fantasma" href="{{ volver }}">Volver</a>
+      <button class="btn btn--primario" type="submit">{{ boton }}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load inventario_tags %}
+{% block titulo %}Existencias{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado">
+    <div><h1>Consulta de existencia</h1><p class="tenue">Cuánto hay de una pieza y en qué anaquel.</p></div>
+    {% include "almacen/_menu.html" %}
+  </header>
+  <form class="filtros" method="get">
+    <label class="buscador"><svg class="i"><use href="#i-buscar"/></svg><input type="search" name="q" value="{{ q }}" placeholder="Nombre, código o número de parte" aria-label="Buscar pieza" autofocus></label>
+    <button class="btn" type="submit">Buscar</button>
+  </form>
+  {% if productos %}
+  <div class="tabla-marco">
+    <table>
+      <thead><tr><th>Pieza</th><th class="der">Stock</th><th>Ubicaciones</th></tr></thead>
+      <tbody>
+        {% for p in productos %}
+        <tr data-href="{% url 'producto_detalle' p.pk %}">
+          <td class="celda-producto"><strong>{{ p.nombre }}</strong><span>{{ p.marca }} · {{ p.codigo }}</span></td>
+          <td class="der"><span class="chip chip--{{ p.stock|estado:p.punto_reorden }}">{{ p.stock }}</span></td>
+          <td>{% for e in p.existencias.all %}{% if e.cantidad %}<span class="codigo">{{ e.ubicacion }}</span> <span class="muy-tenue">({{ e.cantidad }})</span>{% if not forloop.last %}&ensp;{% endif %}{% endif %}{% empty %}<span class="tenue">—</span>{% endfor %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% elif q %}
+  <div class="panel vacio"><svg class="i"><use href="#i-buscar"/></svg><p>Ninguna pieza coincide con «{{ q }}».</p></div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load inventario_tags %}
+{% block titulo %}Productos{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado">
+    <div>
+      <h1>Productos</h1>
+      <p class="tenue">{{ pagina.paginator.count }} producto{{ pagina.paginator.count|pluralize }}{% if q or categoria or estado %} con estos filtros{% endif %}</p>
+    </div>
+    <div class="acciones">
+      <a class="btn btn--primario" href="{% url 'producto_crear' %}"><svg class="i"><use href="#i-mas"/></svg> Nuevo producto</a>
+    </div>
+  </header>
+
+  <form class="filtros" method="get" data-auto role="search">
+    <label class="buscador">
+      <svg class="i"><use href="#i-buscar"/></svg>
+      <input type="search" name="q" value="{{ q }}" placeholder="Código, código de barras, nombre, marca o viscosidad" aria-label="Buscar productos">
+    </label>
+    <select name="categoria" aria-label="Categoría">
+      <option value="">Todas las categorías</option>
+      {% for c in categorias %}<option value="{{ c.pk }}" {% if categoria == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.nombre }}</option>{% endfor %}
+    </select>
+    <select name="estado" aria-label="Estado de stock">
+      <option value="">Cualquier stock</option>
+      <option value="ok" {% if estado == 'ok' %}selected{% endif %}>Suficiente</option>
+      <option value="bajo" {% if estado == 'bajo' %}selected{% endif %}>En punto de reorden</option>
+      <option value="agotado" {% if estado == 'agotado' %}selected{% endif %}>Agotado</option>
+    </select>
+  </form>
+
+  {% if pagina.object_list %}
+  <div class="tabla-marco">
+    <table>
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th class="ocultar-movil">Categoría</th>
+          <th class="ocultar-movil">Presentación</th>
+          <th>Nivel</th>
+          <th class="der">Stock</th>
+          <th class="der ocultar-movil">Precio</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in pagina %}
+        <tr data-href="{% url 'producto_detalle' p.pk %}">
+          <td class="celda-producto"><a href="{% url 'producto_detalle' p.pk %}"><strong>{{ p.nombre }}</strong></a><span><span class="codigo">{{ p.codigo }}</span> · {{ p.marca }}{% if p.especificacion %} · {{ p.especificacion }}{% endif %}</span></td>
+          <td class="ocultar-movil">{{ p.categoria }}</td>
+          <td class="ocultar-movil">{{ p.presentacion|default:"—" }}</td>
+          <td>{% nivel p.stock p.punto_reorden %}</td>
+          <td class="der"><strong class="num">{{ p.stock }}</strong>{% with e=p.stock|estado:p.punto_reorden %}{% if e != 'ok' %}<br><span class="chip chip--{{ e }}">{% if e == 'bajo' %}Reordenar{% else %}Agotado{% endif %}</span>{% endif %}{% endwith %}</td>
+          <td class="der ocultar-movil num">${{ p.precio_venta|floatformat:"2g" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "inventario/_paginacion.html" %}
+  {% else %}
+  <div class="panel vacio">
+    <svg class="i"><use href="#i-bidon"/></svg>
+    {% if q or categoria or estado %}
+    <p>Ningún producto coincide con la búsqueda. Prueba con otro código o quita los filtros.</p>
+    <a class="btn" href="{% url 'productos_lista' %}">Quitar filtros</a>
+    {% else %}
+    <p>Aún no hay productos. Registra el primero para empezar a llevar su stock.</p>
+    <a class="btn btn--primario" href="{% url 'producto_crear' %}">Nuevo producto</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

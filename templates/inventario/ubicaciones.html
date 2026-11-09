@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block titulo %}Ubicaciones{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado">
+    <div>
+      <h1>Ubicaciones</h1>
+      <p class="tenue">Pasillos, estantes y niveles del almacén. Abre una para ver qué contiene.</p>
+    </div>
+  </header>
+
+  <form method="post" class="panel filtros" style="padding:18px;align-items:flex-end" novalidate>
+    {% csrf_token %}
+    <div class="campo{% if form.codigo.errors %} campo--error{% endif %}" style="flex:0 1 180px">
+      <label for="id_codigo">Código</label>
+      <input type="text" name="codigo" id="id_codigo" maxlength="20" placeholder="A-01-2" value="{{ form.codigo.value|default:'' }}">
+      {% for e in form.codigo.errors %}<p class="error">{{ e }}</p>{% endfor %}
+    </div>
+    <div class="campo" style="flex:1 1 260px">
+      <label for="id_descripcion">Descripción <span class="muy-tenue">(opcional)</span></label>
+      <input type="text" name="descripcion" id="id_descripcion" maxlength="120" placeholder="Pasillo A, estante 1, nivel 2" value="{{ form.descripcion.value|default:'' }}">
+    </div>
+    <button class="btn btn--primario" type="submit"><svg class="i"><use href="#i-mas"/></svg> Agregar ubicación</button>
+  </form>
+
+  {% if ubicaciones %}
+  <div class="rejilla-ubic" style="margin-top:22px">
+    {% for u in ubicaciones %}
+    <details class="ubic">
+      <summary>
+        <span class="crece">
+          <span class="ubic__codigo">{{ u.codigo }}</span>
+          <span class="muy-tenue" style="display:block">{{ u.descripcion|default:"Sin descripción" }}</span>
+        </span>
+        <span style="text-align:right"><strong class="num">{{ u.unidades }}</strong><span class="muy-tenue" style="display:block">{{ u.productos_n }} producto{{ u.productos_n|pluralize }}</span></span>
+        <svg class="i chevron"><use href="#i-chevron"/></svg>
+      </summary>
+      {% if u.contenido %}
+      <ul>
+        {% for e in u.contenido %}
+        <li><a href="{% url 'producto_detalle' e.producto_id %}">{{ e.producto.nombre }}</a><strong class="num">{{ e.cantidad }}</strong></li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <ul><li><span class="tenue">Vacía</span></li></ul>
+      {% endif %}
+    </details>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="panel vacio" style="margin-top:22px"><svg class="i"><use href="#i-pin"/></svg><p>Agrega la primera ubicación para poder dar de alta mercancía.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

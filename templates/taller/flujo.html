@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block titulo %}Flujo del taller{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado">
+    <div>
+      <h1>Flujo del taller</h1>
+      <p class="tenue">Del cliente que llega con su vehículo a la entrega y el cobro. Cada tarjeta es un módulo, con lo que tiene pendiente ahora.</p>
+    </div>
+    {% if puede.mostrador %}<div class="acciones"><a class="btn btn--primario" href="{% url 'mostrador:crear' %}"><svg class="i"><use href="#i-mas"/></svg> Recibir vehículo</a></div>{% endif %}
+  </header>
+  <div class="mapa revelar">
+    {% for m in modulos %}
+    {% if m.permitido %}<a class="modulo" href="{% url m.url %}">{% else %}<div class="modulo">{% endif %}
+      <div class="modulo__cab">
+        <span class="modulo__icono"><svg class="i"><use href="#{{ m.icono }}"/></svg></span>
+        <div><h2>{{ m.nombre }}</h2><span class="muy-tenue">{{ m.sub }}</span></div>
+      </div>
+      <ul>{% for f in m.funciones %}<li>{{ f }}</li>{% endfor %}</ul>
+      <div class="modulo__dato"><strong class="num">{{ m.dato }}</strong><span class="muy-tenue">{{ m.etiqueta }}</span></div>
+      <div class="modulo__sigue"><svg class="i"><use href="#i-flecha"/></svg>{{ m.siguiente }}</div>
+    {% if m.permitido %}</a>{% else %}</div>{% endif %}
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

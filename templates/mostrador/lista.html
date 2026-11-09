@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block titulo %}Mostrador{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado">
+    <div><h1>Mostrador</h1><p class="tenue">Recepción de vehículos y órdenes de trabajo.</p></div>
+    {% if puede.mostrador %}<div class="acciones"><a class="btn btn--primario" href="{% url 'mostrador:crear' %}"><svg class="i"><use href="#i-mas"/></svg> Recibir vehículo</a></div>{% endif %}
+  </header>
+  <form class="filtros" method="get" data-auto>
+    <label class="buscador"><svg class="i"><use href="#i-buscar"/></svg><input type="search" name="q" value="{{ q }}" placeholder="Folio, cliente, placas o modelo" aria-label="Buscar orden"></label>
+    <select name="estado" aria-label="Estado">
+      <option value="abiertas" {% if estado == "abiertas" %}selected{% endif %}>Abiertas</option>
+      <option value="todas" {% if estado == "todas" %}selected{% endif %}>Todas</option>
+      {% for valor, nombre in estados %}<option value="{{ valor }}" {% if estado == valor %}selected{% endif %}>{{ nombre }}</option>{% endfor %}
+    </select>
+    <button class="btn" type="submit">Buscar</button>
+  </form>
+  {% if pagina.object_list %}
+  <div class="tabla-marco">
+    <table>
+      <thead><tr><th>Folio</th><th>Cliente y vehículo</th><th class="ocultar-movil">Recibida</th><th>Estado</th></tr></thead>
+      <tbody>
+        {% for o in pagina %}
+        <tr data-href="{% url 'mostrador:detalle' o.pk %}">
+          <td><a class="codigo" href="{% url 'mostrador:detalle' o.pk %}">{{ o.folio }}</a></td>
+          <td class="celda-producto"><strong>{{ o.vehiculo.cliente.nombre }}</strong><span>{{ o.vehiculo }}</span></td>
+          <td class="ocultar-movil">{{ o.creada|date:"j M, H:i" }}</td>
+          <td><span class="chip chip--{{ o.color }}">{{ o.get_estado_display }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "inventario/_paginacion.html" %}
+  {% else %}
+  <div class="panel vacio"><svg class="i"><use href="#i-recepcion"/></svg><p>No hay órdenes con ese filtro.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

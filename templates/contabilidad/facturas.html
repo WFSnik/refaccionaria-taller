@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block titulo %}Facturas{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado">
+    <div><h1>Facturas</h1><p class="tenue">Comprobantes internos de venta; no están timbrados ante el SAT.</p></div>
+    {% include "contabilidad/_menu.html" %}
+  </header>
+  {% if pagina.object_list %}
+  <div class="tabla-marco">
+    <table>
+      <thead><tr><th>Folio</th><th>Cliente</th><th class="ocultar-movil">Fecha</th><th class="der">Total</th><th>Estado</th></tr></thead>
+      <tbody>
+        {% for f in pagina %}
+        <tr data-href="{% url 'contabilidad:factura' f.pk %}">
+          <td><a class="codigo" href="{% url 'contabilidad:factura' f.pk %}">{{ f.folio }}</a></td>
+          <td>{{ f.receptor_nombre }}</td>
+          <td class="ocultar-movil">{{ f.fecha|date:"j M Y" }}</td>
+          <td class="der num">${{ f.total|floatformat:"2g" }}</td>
+          <td><span class="chip chip--{{ f.color }}">{{ f.get_estado_display }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "inventario/_paginacion.html" %}
+  {% else %}<div class="panel vacio"><svg class="i"><use href="#i-factura"/></svg><p>Aún no hay facturas.</p></div>{% endif %}
+</div>
+{% endblock %}

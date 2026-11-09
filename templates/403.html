@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block titulo %}Sin acceso{% endblock %}
+{% block contenido %}
+<div class="panel vacio">
+  <svg class="i"><use href="#i-escudo"/></svg>
+  <h1>Este módulo es de otra área</h1>
+  <p>Tu usuario no tiene el rol necesario. Pídele al administrador que te lo asigne en /admin/.</p>
+  <a class="btn" href="{% url 'taller:flujo' %}">Ir al flujo del taller</a>
+</div>
+{% endblock %}
+{% block publico %}<main class="principal"><h1>Sin acceso</h1></main>{% endblock %}

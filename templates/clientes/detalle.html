@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block titulo %}{{ cliente.nombre }}{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado">
+    <div><h1>{{ cliente.nombre }}</h1><p class="tenue">{{ cliente.telefono }}{% if cliente.correo %} · {{ cliente.correo }}{% endif %}{% if cliente.rfc %} · RFC {{ cliente.rfc }}{% endif %}</p></div>
+    <div class="acciones">
+      <a class="btn" href="{% url 'clientes:editar' cliente.pk %}"><svg class="i"><use href="#i-editar"/></svg> Editar</a>
+      <a class="btn btn--primario" href="{% url 'clientes:vehiculo_crear' cliente.pk %}"><svg class="i"><use href="#i-mas"/></svg> Agregar vehículo</a>
+    </div>
+  </header>
+  {% if cliente.notas %}<p class="aviso">{{ cliente.notas }}</p>{% endif %}
+  {% for v in vehiculos %}
+  <section class="panel seccion">
+    <div class="panel__cab">
+      <h2>{{ v }}</h2>
+      <span class="fila-accion">
+        <a href="{% url 'clientes:vehiculo_editar' v.pk %}">Editar</a>
+        {% if puede.mostrador %}<a class="btn btn--chico btn--primario" href="{% url 'mostrador:crear' %}?vehiculo={{ v.pk }}">Recibir</a>{% endif %}
+      </span>
+    </div>
+    <div class="panel__cuerpo">
+      {% if v.ordenes.all %}
+      <ul class="lista">
+        {% for o in v.ordenes.all %}
+        <li>
+          <span class="crece">{% if puede.ordenes %}<a href="{% url 'mostrador:detalle' o.pk %}"><strong>{{ o.folio }}</strong></a>{% else %}<strong>{{ o.folio }}</strong>{% endif %}<span class="muy-tenue">{{ o.creada|date:"j M Y" }} · {{ o.sintomas|truncatechars:70 }}</span></span>
+          <span class="chip chip--{{ o.color }}">{{ o.get_estado_display }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}<p class="tenue">Sin órdenes de trabajo.</p>{% endif %}
+    </div>
+  </section>
+  {% empty %}
+  <div class="panel vacio"><svg class="i"><use href="#i-auto"/></svg><p>Agrega el vehículo del cliente para poder recibirlo.</p></div>
+  {% endfor %}
+</div>
+{% endblock %}

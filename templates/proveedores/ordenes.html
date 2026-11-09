@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block titulo %}Órdenes de compra{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado">
+    <div><h1>Órdenes de compra</h1><p class="tenue">Al recibir el material entra al inventario y su costo a contabilidad.</p></div>
+    {% include "proveedores/_menu.html" %}
+  </header>
+  {% if pagina.object_list %}
+  <div class="tabla-marco">
+    <table>
+      <thead><tr><th>Folio</th><th>Proveedor</th><th class="ocultar-movil">Fecha</th><th class="der">Total</th><th>Estado</th></tr></thead>
+      <tbody>
+        {% for o in pagina %}
+        <tr data-href="{% url 'proveedores:orden_detalle' o.pk %}">
+          <td><a class="codigo" href="{% url 'proveedores:orden_detalle' o.pk %}">{{ o.folio }}</a></td>
+          <td>{{ o.proveedor }}</td>
+          <td class="ocultar-movil">{{ o.creada|date:"j M Y" }}</td>
+          <td class="der num">${{ o.total|floatformat:"2g" }}</td>
+          <td><span class="chip chip--{{ o.color }}">{{ o.get_estado_display }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "inventario/_paginacion.html" %}
+  {% else %}<div class="panel vacio"><svg class="i"><use href="#i-factura"/></svg><p>Aún no hay órdenes de compra.</p></div>{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block titulo %}Herramientas{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado">
+    <div><h1>Herramientas</h1><p class="tenue">Herramienta del taller y a quién se le prestó. No se vende ni forma parte del inventario de venta.</p></div>
+    {% include "almacen/_menu.html" %}
+  </header>
+  <form method="post" class="panel filtros" style="padding:18px;align-items:flex-start" novalidate>
+    {% csrf_token %}
+    {% for campo in form %}<div style="flex:1 1 200px">{% include "inventario/_campo.html" %}</div>{% endfor %}
+    <button class="btn btn--primario" type="submit" style="margin-top:24px"><svg class="i"><use href="#i-mas"/></svg> Agregar</button>
+  </form>
+  {% if herramientas %}
+  <div class="tabla-marco seccion">
+    <table>
+      <thead><tr><th>Herramienta</th><th class="ocultar-movil">Ubicación</th><th>Estado</th><th></th></tr></thead>
+      <tbody>
+        {% for h in herramientas %}
+        {% with p=h.prestamo_abierto %}
+        <tr>
+          <td class="celda-producto"><strong>{{ h.nombre }}</strong><span class="codigo">{{ h.codigo }}</span></td>
+          <td class="ocultar-movil">{{ h.ubicacion|default:"—" }}</td>
+          <td>{% if p %}<span class="chip chip--bajo">Con {{ p.mecanico }}</span>{% if p.orden %} <span class="muy-tenue">{{ p.orden.folio }}</span>{% endif %}{% else %}<span class="chip chip--ok">Disponible</span>{% endif %}</td>
+          <td><div class="celda-acciones">
+            {% if p %}<form method="post" action="{% url 'almacen:devolver' p.pk %}">{% csrf_token %}<button class="btn btn--chico" type="submit">Devolver</button></form>
+            {% else %}<a class="btn btn--chico" href="{% url 'almacen:prestar' h.pk %}">Prestar</a>{% endif %}
+          </div></td>
+        </tr>
+        {% endwith %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}<div class="panel vacio seccion"><svg class="i"><use href="#i-lista"/></svg><p>Aún no hay herramientas registradas.</p></div>{% endif %}
+</div>
+{% endblock %}

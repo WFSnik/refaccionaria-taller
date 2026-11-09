@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load static %}
+{% block titulo %}¿Qué lleva el auto?{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado">
+    <div>
+      <h1>¿Qué lleva el auto?</h1>
+      <p class="tenue">Filtros por vehículo según el catálogo Gonher 2026, con equivalencias Fram y Wix y lo que hay en el anaquel.</p>
+    </div>
+    <div class="acciones">
+      <a class="btn" href="{% url 'catalogo_numero' %}"><svg class="i"><use href="#i-buscar"/></svg> Por número de parte</a>
+      <a class="btn btn--fantasma" href="{% url 'catalogo_pendientes' %}">Sin respuesta</a>
+    </div>
+  </header>
+
+  <form class="filtros filtros--vehiculo" method="get" role="search" data-vehiculo data-opciones="{% url 'catalogo_opciones' %}">
+    <label class="buscador">
+      <svg class="i"><use href="#i-buscar"/></svg>
+      <input type="search" name="q" value="{{ q }}" placeholder="Escribe como lo dice el cliente: versa 2015, tsuru 1.6, cr-v 2018" aria-label="Vehículo" autofocus>
+    </label>
+    <select name="marca" aria-label="Marca">
+      <option value="">Marca</option>
+      {% for m in marcas %}<option {% if m == marca %}selected{% endif %}>{{ m }}</option>{% endfor %}
+    </select>
+    <select name="modelo" aria-label="Modelo" data-valor="{{ modelo }}" {% if not marca %}disabled{% endif %}><option value="">Modelo</option></select>
+    <select name="anio" aria-label="Año" data-valor="{{ anio }}" {% if not modelo %}disabled{% endif %}><option value="">Año</option></select>
+    <button class="btn btn--primario" type="submit">Buscar</button>
+  </form>
+
+  {% if vehiculo %}
+  <section class="panel ficha-vehiculo">
+    <div>
+      <p class="muy-tenue">{{ vehiculo.marca }}</p>
+      <h2>{{ vehiculo.modelo }} <span class="tenue">{{ vehiculo.anios }}</span></h2>
+      <p class="tenue">Motor {{ vehiculo.motor }}</p>
+    </div>
+    <a class="btn btn--chico" href="?q={{ vehiculo.modelo|lower|urlencode }}">Otras versiones del {{ vehiculo.modelo|title }}</a>
+  </section>
+  {% if grupos %}
+  <div class="rejilla-piezas">
+    {% for g in grupos %}
+    <section class="panel tipo-pieza" style="--i:{{ forloop.counter0 }}">
+      <div class="panel__cab"><h3>{{ g.nombre }}</h3></div>
+      <div class="panel__cuerpo">{% for o in g.opciones %}{% include "catalogo/_opcion.html" %}{% endfor %}</div>
+    </section>
+    {% endfor %}
+  </div>
+  <p class="muy-tenue nota-fuente">Aplicaciones y equivalencias Fram: catálogo oficial de Gonher 2026. Las equivalencias Wix salen de tablas de terceros; las marcadas «por confirmar» tienen una sola fuente.</p>
+  {% else %}
+  <div class="panel vacio"><svg class="i"><use href="#i-bidon"/></svg><p>El catálogo no trae filtros para esta versión.</p></div>
+  {% endif %}
+
+  {% elif encontrados %}
+  <section class="panel">
+    <div class="panel__cab"><h2>Hay {{ encontrados|length }} versiones{% if encontrados|length == 40 %} o más{% endif %}</h2><span class="muy-tenue">Pregunta al cliente el año o el motor</span></div>
+    <ul class="lista versiones panel__cuerpo">
+      {% for v in encontrados %}
+      <li style="--i:{{ forloop.counter0 }}"><a class="crece" href="?v={{ v.pk }}"><strong>{{ v.marca }} {{ v.modelo }} {{ v.anios }}</strong></a><span class="tenue">{{ v.motor }}</span><svg class="i"><use href="#i-flecha"/></svg></li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  {% elif buscado %}
+  <div class="panel vacio">
+    <svg class="i"><use href="#i-bidon"/></svg>
+    <p>No encontramos «{{ q|default:modelo }}»{% if anio %} {{ anio }}{% endif %} en el catálogo. Quedó en la lista <a href="{% url 'catalogo_pendientes' %}">sin respuesta</a> para cargarlo.</p>
+    <p class="muy-tenue">Revisa la ortografía o quita el año: a veces el catálogo agrupa los años distinto.</p>
+  </div>
+
+  {% else %}
+  <div class="panel ejemplos">
+    <p class="tenue">Prueba con</p>
+    <div class="ejemplos__lista">
+      <a class="equiv" href="?q=versa+2015">versa 2015</a>
+      <a class="equiv" href="?q=tsuru+2012">tsuru 2012</a>
+      <a class="equiv" href="?q=aveo+1.6+2014">aveo 1.6 2014</a>
+      <a class="equiv" href="?q=sentra+2017">sentra 2017</a>
+      <a class="equiv" href="?q=cr-v+2018">cr-v 2018</a>
+      <a class="equiv" href="?q=vento+2019">vento 2019</a>
+      <a class="equiv" href="?q=corolla+2014">corolla 2014</a>
+      <a class="equiv" href="?q=beat+2020">beat 2020</a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/vehiculos.js' %}" defer></script>{% endblock %}

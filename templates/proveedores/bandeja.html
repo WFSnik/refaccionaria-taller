@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block titulo %}Proveedores{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado">
+    <div><h1>Proveedores y compras</h1><p class="tenue">Lo que pidió almacén y lo que llegó a su punto de reorden.</p></div>
+    {% include "proveedores/_menu.html" %}
+  </header>
+
+  <section class="panel">
+    <div class="panel__cab">
+      <h2>Solicitudes pendientes <span class="muy-tenue">({{ pendientes|length }})</span></h2>
+      <a href="{% url 'proveedores:solicitud_manual' %}">Agregar solicitud</a>
+    </div>
+    {% if pendientes %}
+    <form method="post" action="{% url 'proveedores:orden_crear' %}">
+      {% csrf_token %}
+      <div class="alertas-lista">
+        {% for s in pendientes %}
+        <label class="alerta-fila">
+          <input type="checkbox" name="solicitudes" value="{{ s.pk }}" checked>
+          <span class="crece"><strong>{{ s.producto.nombre }} {{ s.producto.marca }}</strong><span class="muy-tenue" style="display:block">{{ s.producto.codigo }}{% if s.referencia %} · {{ s.referencia }}{% endif %} · costo ${{ s.producto.costo|floatformat:"2g" }}</span></span>
+          <strong class="num">{{ s.cantidad }}</strong>
+        </label>
+        {% endfor %}
+      </div>
+      <div class="filtros" style="padding:16px 20px;margin:0;border-top:1px solid var(--linea);align-items:center">
+        <label for="id_proveedor" class="muy-tenue">Proveedor</label>
+        {{ orden_form.proveedor }}
+        <button class="btn btn--primario" type="submit">Crear orden de compra</button>
+      </div>
+    </form>
+    {% else %}<div class="vacio"><svg class="i"><use href="#i-check"/></svg><p>No hay solicitudes pendientes.</p></div>{% endif %}
+  </section>
+
+  {% if alertas %}
+  <section class="panel seccion">
+    <div class="panel__cab"><h2>Alertas de reorden sin solicitud <span class="muy-tenue">({{ alertas|length }})</span></h2><a href="{% url 'alertas' %}">Ver alertas</a></div>
+    <div class="alertas-lista">
+      {% for a in alertas %}
+      <div class="alerta-fila">
+        <span class="mov-icono" style="background:var(--ambar-suave);color:var(--bajo)"><svg class="i"><use href="#i-campana"/></svg></span>
+        <span class="crece"><strong>{{ a.producto.nombre }} {{ a.producto.marca }}</strong><span class="muy-tenue" style="display:block">{{ a.get_origen_display }} · quedaban {{ a.stock_al_generar }}, reorden en {{ a.punto_reorden }}</span></span>
+        <form method="post" action="{% url 'proveedores:desde_alerta' a.pk %}">{% csrf_token %}<button class="btn btn--chico btn--ambar" type="submit">Solicitar</button></form>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block titulo %}{% if producto %}Editar {{ producto.codigo }}{% else %}Nuevo producto{% endif %}{% endblock %}
+{% block contenido %}
+<div class="revelar" style="max-width:820px">
+  <header class="encabezado">
+    <div>
+      <p class="muy-tenue"><a href="{% url 'productos_lista' %}">Productos</a>{% if producto %} / <a href="{% url 'producto_detalle' producto.pk %}">{{ producto.codigo }}</a>{% endif %}</p>
+      <h1 style="margin-top:6px">{% if producto %}Editar producto{% else %}Nuevo producto{% endif %}</h1>
+    </div>
+  </header>
+  <form method="post" class="panel" style="padding:26px" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="errores-form">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+    <div class="rejilla-form">
+      {% include "inventario/_campo.html" with campo=form.codigo %}
+      {% include "inventario/_campo.html" with campo=form.codigo_barras %}
+      {% include "inventario/_campo.html" with campo=form.nombre ancho=True %}
+      {% include "inventario/_campo.html" with campo=form.categoria %}
+      {% include "inventario/_campo.html" with campo=form.marca %}
+      {% include "inventario/_campo.html" with campo=form.numero_parte %}
+      {% include "inventario/_campo.html" with campo=form.presentacion %}
+      {% include "inventario/_campo.html" with campo=form.especificacion %}
+      {% include "inventario/_campo.html" with campo=form.costo %}
+      {% include "inventario/_campo.html" with campo=form.precio_venta %}
+      {% include "inventario/_campo.html" with campo=form.punto_reorden %}
+      {% if form.activo %}
+      <div class="campo" style="justify-content:end">
+        <label style="display:flex;gap:10px;align-items:center;color:var(--tinta)">{{ form.activo }} Producto activo</label>
+        <span class="ayuda">Los inactivos no aparecen en altas, bajas ni en la lista.</span>
+      </div>
+      {% endif %}
+    </div>
+    <div class="paso__nav">
+      <a class="btn btn--fantasma" href="{% if producto %}{% url 'producto_detalle' producto.pk %}{% else %}{% url 'productos_lista' %}{% endif %}">Cancelar</a>
+      <button class="btn btn--primario" type="submit">{% if producto %}Guardar cambios{% else %}Registrar producto{% endif %}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load inventario_tags %}
+{% block titulo %}Reorden{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado">
+    <div>
+      <h1>Alertas de reorden</h1>
+      <p class="tenue">Productos que llegaron a su punto de reorden. Se cierran solas cuando entra mercancía suficiente.</p>
+    </div>
+  </header>
+
+  <section class="panel">
+    <div class="panel__cab"><h2>Pendientes <span class="muy-tenue">({{ pendientes|length }})</span></h2></div>
+    {% if pendientes %}
+    <div class="alertas-lista">
+      {% for a in pendientes %}
+      <div class="alerta-fila">
+        <span class="mov-icono" style="background:var(--ambar-suave);color:var(--bajo)"><svg class="i"><use href="#i-campana"/></svg></span>
+        <span class="crece">
+          <a href="{% url 'producto_detalle' a.producto_id %}"><strong>{{ a.producto.nombre }}</strong></a>
+          <span class="muy-tenue" style="display:block">{{ a.get_origen_display }} · {{ a.creada|date:"j M, H:i" }} · {% if a.notificada_en %}compras notificado{% else %}sin notificar{% endif %}</span>
+        </span>
+        {% nivel a.stock_actual a.punto_reorden %}
+        <span class="num ocultar-movil" style="min-width:70px;text-align:right"><strong>{{ a.stock_actual }}</strong> <span class="muy-tenue">/ {{ a.punto_reorden }}</span></span>
+        <a class="btn btn--fantasma btn--chico" href="{% url 'alerta_correo' a.pk %}" target="_blank" rel="noopener">Ver correo</a>
+        <form method="post" action="{% url 'alerta_atender' a.pk %}">{% csrf_token %}<button class="btn btn--chico" type="submit">Marcar atendida</button></form>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="vacio"><svg class="i"><use href="#i-check"/></svg><p>No hay alertas pendientes.</p></div>
+    {% endif %}
+  </section>
+
+  {% if atendidas %}
+  <section style="margin-top:24px">
+    <h2 style="margin-bottom:14px">Atendidas recientemente</h2>
+    <div class="tabla-marco">
+      <table>
+        <thead><tr><th>Producto</th><th class="ocultar-movil">Origen</th><th>Creada</th><th>Atendida</th><th class="ocultar-movil">Por</th></tr></thead>
+        <tbody>
+          {% for a in atendidas %}
+          <tr data-href="{% url 'producto_detalle' a.producto_id %}">
+            <td class="celda-producto"><strong>{{ a.producto.nombre }}</strong><span class="codigo">{{ a.producto.codigo }}</span></td>
+            <td class="ocultar-movil">{{ a.get_origen_display }}</td>
+            <td>{{ a.creada|date:"j M, H:i" }}</td>
+            <td>{{ a.atendida_en|date:"j M, H:i" }}</td>
+            <td class="ocultar-movil">{{ a.atendida_por|default:"—" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

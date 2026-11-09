@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block titulo %}Ventas{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado"><div><h1>Ventas</h1><p class="tenue">Diagnóstico inicial, presupuestos y autorización de reparaciones.</p></div></header>
+  <section class="panel">
+    <div class="panel__cab"><h2>Por diagnosticar <span class="muy-tenue">({{ por_diagnosticar|length }})</span></h2></div>
+    <div class="panel__cuerpo">{% include "ventas/_tabla_ordenes.html" with ordenes=por_diagnosticar destino="ventas:presupuesto" vacio="No hay vehículos esperando diagnóstico." %}</div>
+  </section>
+  <section class="panel seccion">
+    <div class="panel__cab"><h2>Esperando autorización <span class="muy-tenue">({{ por_autorizar|length }})</span></h2></div>
+    <div class="panel__cuerpo">{% include "ventas/_tabla_ordenes.html" with ordenes=por_autorizar destino="ventas:presupuesto" vacio="Ningún presupuesto espera respuesta." %}</div>
+  </section>
+  <section class="panel seccion">
+    <div class="panel__cab"><h2>Autorizadas y en reparación <span class="muy-tenue">({{ en_curso|length }})</span></h2></div>
+    <div class="panel__cuerpo">{% include "ventas/_tabla_ordenes.html" with ordenes=en_curso destino="mostrador:detalle" vacio="Nada en curso." %}</div>
+  </section>
+</div>
+{% endblock %}

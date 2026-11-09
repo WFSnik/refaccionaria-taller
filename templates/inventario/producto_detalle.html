@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load inventario_tags %}
+{% block titulo %}{{ producto.nombre }}{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado">
+    <div>
+      <p class="muy-tenue"><a href="{% url 'productos_lista' %}">Productos</a> / {{ producto.categoria }}</p>
+      <h1 style="margin-top:6px">{{ producto.nombre }}</h1>
+    </div>
+    <div class="acciones">
+      <a class="btn btn--fantasma" href="{% url 'producto_editar' producto.pk %}"><svg class="i"><use href="#i-editar"/></svg> Editar</a>
+      {% if stock %}<a class="btn" href="{% url 'movimiento_nuevo' %}?tipo=BAJA&amp;producto={{ producto.pk }}"><svg class="i"><use href="#i-salida"/></svg> Baja</a>{% endif %}
+      <a class="btn btn--primario" href="{% url 'movimiento_nuevo' %}?tipo=ALTA&amp;producto={{ producto.pk }}"><svg class="i"><use href="#i-entrada"/></svg> Alta</a>
+    </div>
+  </header>
+
+  <section class="panel ficha">
+    <div class="ficha__nivel">
+      {% nivel stock producto.punto_reorden "grande" %}
+      <div style="text-align:center">
+        <div class="ficha__stock num" data-contar="{{ stock }}" data-retraso="300">{{ stock }}</div>
+        <div class="muy-tenue">en stock</div>
+      </div>
+    </div>
+    <div>
+      {% with e=stock|estado:producto.punto_reorden %}
+      <span class="chip chip--{{ e }}">{% if e == 'ok' %}Stock suficiente{% elif e == 'bajo' %}En punto de reorden{% else %}Agotado{% endif %}</span>
+      {% endwith %}
+      {% if not producto.activo %}<span class="chip">Inactivo</span>{% endif %}
+      <dl class="datos">
+        <div><dt>Código</dt><dd class="codigo">{{ producto.codigo }}</dd></div>
+        <div><dt>Código de barras</dt><dd>{{ producto.codigo_barras|default:"—" }}</dd></div>
+        <div><dt>Marca</dt><dd>{{ producto.marca }}</dd></div>
+        <div><dt>Número de parte</dt><dd>{% if producto.numero_parte %}<a href="{% url 'catalogo_numero' %}?n={{ producto.numero_parte|urlencode }}">{{ producto.numero_parte }}</a>{% else %}—{% endif %}</dd></div>
+        <div><dt>Presentación</dt><dd>{{ producto.presentacion|default:"—" }}</dd></div>
+        <div><dt>Especificación</dt><dd>{{ producto.especificacion|default:"—" }}</dd></div>
+        <div><dt>Punto de reorden</dt><dd>{{ producto.punto_reorden }} unidades</dd></div>
+        <div><dt>Costo</dt><dd class="num">${{ producto.costo|floatformat:"2g" }}</dd></div>
+        <div><dt>Precio de venta</dt><dd class="num">${{ producto.precio_venta|floatformat:"2g" }}</dd></div>
+        <div><dt>Valor en almacén</dt><dd class="num">${% widthratio stock 1 producto.costo %}</dd></div>
+      </dl>
+      {% if alerta %}
+      <div class="aviso"><svg class="i"><use href="#i-campana"/></svg><span>Hay una alerta de reorden abierta desde {{ alerta.creada|date:"j M, H:i" }}{% if alerta.notificada_en %} y compras ya fue notificado{% endif %}. Se cierra sola al dar entrada por encima de {{ producto.punto_reorden }} unidades.</span></div>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="panel" style="margin-top:24px">
+    <div class="panel__cab"><h2>Dónde está</h2></div>
+    <div class="panel__cuerpo">
+      {% if existencias %}
+      <div class="ubic-chips">
+        {% for e in existencias %}
+        <div class="ubic-chip"><svg class="i"><use href="#i-pin"/></svg><span><span class="codigo">{{ e.ubicacion.codigo }}</span>{% if e.ubicacion.descripcion %}<br><span class="muy-tenue">{{ e.ubicacion.descripcion }}</span>{% endif %}</span><strong class="num">{{ e.cantidad }}</strong></div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="tenue">Sin existencias en ninguna ubicación.</p>
+      {% endif %}
+    </div>
+  </section>
+
+  <section style="margin-top:24px">
+    <h2 style="margin-bottom:14px">Movimientos</h2>
+    {% if movimientos %}
+    <div class="tabla-marco">
+      <table>
+        <thead><tr><th>Fecha</th><th>Tipo</th><th>Motivo</th><th>Ubicación</th><th class="der">Cantidad</th><th class="der">Stock después</th><th class="ocultar-movil">Usuario</th></tr></thead>
+        <tbody>
+          {% for m in movimientos %}
+          <tr>
+            <td>{{ m.fecha|date:"j M Y, H:i" }}</td>
+            <td><span class="chip chip--{{ m.tipo|lower }}">{{ m.get_tipo_display }}</span></td>
+            <td>{{ m.get_motivo_display }}{% if m.referencia %}<br><span class="muy-tenue">{{ m.referencia }}</span>{% endif %}</td>
+            <td class="codigo">{{ m.ubicacion }}</td>
+            <td class="der num"><strong>{% if m.tipo == 'ALTA' %}+{% else %}−{% endif %}{{ m.cantidad }}</strong></td>
+            <td class="der num">{{ m.stock_resultante }}</td>
+            <td class="ocultar-movil">{{ m.usuario }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="panel vacio"><svg class="i"><use href="#i-flechas"/></svg><p>Este producto aún no tiene movimientos. Dale entrada para asignarle ubicación.</p><a class="btn btn--primario" href="{% url 'movimiento_nuevo' %}?tipo=ALTA&amp;producto={{ producto.pk }}">Registrar alta</a></div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

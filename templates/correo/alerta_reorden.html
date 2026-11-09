@@ -1,0 +1,165 @@
+{% load l10n %}<!doctype html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Reordenar {{ producto.nombre }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 0; }
+  @media (max-width: 620px) {
+    .contenedor { width: 100% !important; }
+    .pad { padding-left: 20px !important; padding-right: 20px !important; }
+    .dato { display: block !important; width: 100% !important; border-left: 0 !important; border-top: 1px solid #e3e8ef !important; }
+    .dato-1 { border-top: 0 !important; }
+  }
+</style>
+</head>
+<body style="margin:0;padding:0;background:#f5f7fa;">
+<!-- Texto de vista previa en la bandeja -->
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">Quedan {{ stock }} de {{ producto.nombre }} ({{ producto.marca }}). Sugerido pedir {{ sugerido }}.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f7fa;">
+<tr><td align="center" style="padding:32px 12px;">
+
+<table role="presentation" class="contenedor" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;background:#ffffff;border:1px solid #e3e8ef;border-radius:12px;overflow:hidden;font-family:'Archivo',Arial,Helvetica,sans-serif;color:#16202b;">
+
+  <!-- Encabezado -->
+  <tr>
+    <td class="pad" style="background:#0e3a5b;padding:22px 32px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td style="font-family:'Archivo',Arial,sans-serif;font-size:17px;font-weight:800;font-stretch:125%;color:#ffffff;letter-spacing:-.2px;">
+            <span style="display:inline-block;width:10px;height:14px;border-radius:5px 5px 5px 5px;background:#d4940a;vertical-align:-1px;margin-right:8px;"></span>Refaccionaria
+          </td>
+          <td align="right" style="font-family:'Archivo',Arial,sans-serif;font-size:13px;color:#b9cadb;">Aviso a compras</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  <!-- Titular -->
+  <tr>
+    <td class="pad" style="padding:30px 32px 6px;">
+      <p style="margin:0 0 10px;font-size:13px;font-weight:700;color:{% if alerta.origen == 'SIN_STOCK' %}#b8342a{% else %}#c2571a{% endif %};">
+        {% if alerta.origen == 'SIN_STOCK' %}Se intentó una baja sin stock suficiente{% else %}Llegó a su punto de reorden{% endif %}
+      </p>
+      <h1 style="margin:0;font-family:'Archivo',Arial,sans-serif;font-size:26px;line-height:1.2;font-weight:800;font-stretch:125%;letter-spacing:-.3px;color:#16202b;">{{ producto.nombre }}</h1>
+      <p style="margin:8px 0 0;font-size:15px;color:#5a6878;">
+        <strong style="color:#0e3a5b;">{{ producto.codigo }}</strong> &nbsp;·&nbsp; {{ producto.marca }}{% if producto.presentacion %} &nbsp;·&nbsp; {{ producto.presentacion }}{% endif %}{% if producto.especificacion %} &nbsp;·&nbsp; {{ producto.especificacion }}{% endif %}
+      </p>
+    </td>
+  </tr>
+
+  <!-- Nivel -->
+  <tr>
+    <td class="pad" style="padding:24px 32px 8px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td style="font-size:44px;line-height:1;font-weight:800;font-stretch:125%;color:{% if stock == 0 %}#b8342a{% else %}#c2571a{% endif %};width:1%;white-space:nowrap;padding-right:14px;">{{ stock }}</td>
+          <td style="font-size:14px;color:#5a6878;line-height:1.4;">en stock<br>reorden en {{ reorden }}</td>
+        </tr>
+      </table>
+      {% localize off %}
+      <!-- Bayoneta: el llenado es el stock, la marca oscura es el punto de reorden -->
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:16px;border-collapse:separate;">
+        <tr>
+          {% if pct > 0 %}<td width="{{ pct }}%" height="12" style="height:12px;background:{% if stock <= reorden %}#c2571a{% else %}#d4940a{% endif %};border-radius:6px 0 0 6px;font-size:0;line-height:0;">&nbsp;</td>{% endif %}
+          <td height="12" style="height:12px;background:{% if stock == 0 %}#fbecea{% else %}#eef1f5{% endif %};border-radius:{% if pct > 0 %}0 6px 6px 0{% else %}6px{% endif %};font-size:0;line-height:0;">&nbsp;</td>
+        </tr>
+      </table>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td width="{{ reorden_pct }}%" style="font-size:0;line-height:0;">&nbsp;</td>
+          <td style="padding-top:4px;font-size:12px;color:#5a6878;white-space:nowrap;"><span style="display:inline-block;width:2px;height:10px;background:#16202b;vertical-align:-1px;margin-right:6px;"></span>Punto de reorden</td>
+        </tr>
+      </table>
+      {% endlocalize %}
+    </td>
+  </tr>
+
+  <!-- Sugerencia de pedido -->
+  <tr>
+    <td class="pad" style="padding:20px 32px 4px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e3e8ef;border-radius:10px;">
+        <tr>
+          <td class="dato dato-1" width="33%" style="padding:16px 18px;vertical-align:top;">
+            <p style="margin:0;font-size:12px;color:#8795a5;">Sugerido pedir</p>
+            <p style="margin:4px 0 0;font-size:20px;font-weight:800;color:#0e3a5b;">{{ sugerido }} <span style="font-size:13px;font-weight:600;color:#5a6878;">unidades</span></p>
+          </td>
+          <td class="dato" width="33%" style="padding:16px 18px;vertical-align:top;border-left:1px solid #e3e8ef;">
+            <p style="margin:0;font-size:12px;color:#8795a5;">Costo estimado</p>
+            <p style="margin:4px 0 0;font-size:20px;font-weight:800;color:#16202b;">${{ costo_estimado|floatformat:"2g" }}</p>
+          </td>
+          <td class="dato" width="34%" style="padding:16px 18px;vertical-align:top;border-left:1px solid #e3e8ef;">
+            <p style="margin:0;font-size:12px;color:#8795a5;">Costo unitario</p>
+            <p style="margin:4px 0 0;font-size:20px;font-weight:800;color:#16202b;">${{ producto.costo|floatformat:"2g" }}</p>
+          </td>
+        </tr>
+      </table>
+      <p style="margin:8px 0 0;font-size:12px;color:#8795a5;">La sugerencia completa hasta 3 veces el punto de reorden.</p>
+    </td>
+  </tr>
+
+  <!-- Ubicaciones y últimas salidas -->
+  <tr>
+    <td class="pad" style="padding:22px 32px 4px;">
+      <h2 style="margin:0 0 8px;font-size:15px;font-weight:700;font-stretch:125%;color:#16202b;">Dónde está</h2>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:14px;">
+        {% for e in existencias %}
+        <tr>
+          <td style="padding:8px 0;border-top:1px solid #e3e8ef;"><strong style="color:#0e3a5b;">{{ e.ubicacion.codigo }}</strong>{% if e.ubicacion.descripcion %} <span style="color:#8795a5;">· {{ e.ubicacion.descripcion }}</span>{% endif %}</td>
+          <td align="right" style="padding:8px 0;border-top:1px solid #e3e8ef;font-weight:700;">{{ e.cantidad }}</td>
+        </tr>
+        {% empty %}
+        <tr><td style="padding:8px 0;border-top:1px solid #e3e8ef;color:#b8342a;">Sin existencias en ninguna ubicación.</td></tr>
+        {% endfor %}
+      </table>
+    </td>
+  </tr>
+  {% if salidas %}
+  <tr>
+    <td class="pad" style="padding:18px 32px 4px;">
+      <h2 style="margin:0 0 8px;font-size:15px;font-weight:700;font-stretch:125%;color:#16202b;">Últimas salidas</h2>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:14px;">
+        {% for m in salidas %}
+        <tr>
+          <td style="padding:8px 0;border-top:1px solid #e3e8ef;color:#5a6878;white-space:nowrap;">{{ m.fecha|date:"j M, H:i" }}</td>
+          <td width="100%" style="padding:8px 14px;border-top:1px solid #e3e8ef;">{{ m.get_motivo_display }}</td>
+          <td align="right" style="padding:8px 0;border-top:1px solid #e3e8ef;font-weight:700;">−{{ m.cantidad }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </td>
+  </tr>
+  {% endif %}
+
+  <!-- Acciones -->
+  <tr>
+    <td class="pad" style="padding:26px 32px 30px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td style="background:#0e3a5b;border-radius:8px;">
+            <a href="{{ url_producto }}" style="display:inline-block;padding:13px 22px;font-family:'Archivo',Arial,sans-serif;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;">Ver producto</a>
+          </td>
+          <td style="width:12px;"></td>
+          <td style="border:1px solid #cdd5df;border-radius:8px;">
+            <a href="{{ url_alertas }}" style="display:inline-block;padding:12px 20px;font-family:'Archivo',Arial,sans-serif;font-size:14px;font-weight:700;color:#16202b;text-decoration:none;">Todas las alertas</a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  <!-- Pie -->
+  <tr>
+    <td class="pad" style="padding:18px 32px;background:#f5f7fa;border-top:1px solid #e3e8ef;font-size:12px;line-height:1.5;color:#8795a5;">
+      Alerta generada el {{ alerta.creada|date:"j \d\e F"|lower }} a las {{ alerta.creada|date:"H:i" }}. Se cierra sola cuando entra mercancía por encima del punto de reorden, o puedes marcarla como atendida en el sistema.
+    </td>
+  </tr>
+</table>
+
+</td></tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block titulo %}Directorio de proveedores{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado">
+    <div><h1>Directorio de proveedores</h1><p class="tenue">Quién surte el taller y en cuánto tiempo.</p></div>
+    <div class="acciones">
+      <a class="btn" href="{% url 'proveedores:bandeja' %}">Solicitudes</a>
+      <a class="btn btn--primario" href="{% url 'proveedores:proveedor_crear' %}"><svg class="i"><use href="#i-mas"/></svg> Nuevo proveedor</a>
+    </div>
+  </header>
+  {% if proveedores %}
+  <div class="tabla-marco">
+    <table>
+      <thead><tr><th>Proveedor</th><th>Contacto</th><th class="ocultar-movil">Teléfono</th><th class="der">Días de entrega</th><th>Estado</th></tr></thead>
+      <tbody>
+        {% for p in proveedores %}
+        <tr data-href="{% url 'proveedores:proveedor_editar' p.pk %}">
+          <td class="celda-producto"><a href="{% url 'proveedores:proveedor_editar' p.pk %}"><strong>{{ p.nombre }}</strong></a><span>{{ p.rfc }}</span></td>
+          <td>{{ p.contacto|default:"—" }}</td>
+          <td class="ocultar-movil num">{{ p.telefono|default:"—" }}</td>
+          <td class="der num">{{ p.dias_entrega }}</td>
+          <td>{% if p.activo %}<span class="chip chip--ok">Activo</span>{% else %}<span class="chip chip--neutro">Inactivo</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}<div class="panel vacio"><svg class="i"><use href="#i-camion"/></svg><p>Registra el primer proveedor para crear órdenes de compra.</p></div>{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block titulo %}{{ auditoria.folio }}{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado">
+    <div><h1>{{ auditoria.folio }}</h1><p class="tenue">Ubicación {{ auditoria.ubicacion }} · abrió {{ auditoria.usuario }}, {{ auditoria.creada|date:"j M Y, H:i" }}</p></div>
+    <div class="acciones">
+      {% if auditoria.abierta %}<span class="chip chip--bajo">Abierta</span>{% else %}<span class="chip chip--ok">Cerrada {{ auditoria.cerrada_en|date:"j M, H:i" }}</span>{% endif %}
+      <a class="btn" href="{% url 'auditorias' %}">Volver</a>
+    </div>
+  </header>
+  {% if lineas %}
+  <form method="post">
+    {% csrf_token %}
+    <div class="tabla-marco">
+      <table>
+        <thead><tr><th>Producto</th><th class="der">Sistema</th><th class="der">Contado</th><th class="der">Diferencia</th><th class="ocultar-movil">Nota</th></tr></thead>
+        <tbody>
+          {% for l in lineas %}
+          <tr>
+            <td class="celda-producto"><strong>{{ l.producto.nombre }}</strong><span class="codigo">{{ l.producto.codigo }}</span></td>
+            <td class="der num">{{ l.esperado }}</td>
+            <td class="der">{% if auditoria.abierta %}<input class="input-corto" type="number" min="0" name="contado_{{ l.pk }}" value="{{ l.contado|default_if_none:'' }}" aria-label="Contado de {{ l.producto.nombre }}">{% else %}<span class="num">{{ l.contado|default_if_none:"—" }}</span>{% endif %}</td>
+            <td class="der num">{% if l.diferencia %}<span class="chip chip--bajo">{{ l.diferencia }}</span>{% elif l.diferencia == 0 %}<span class="chip chip--ok">0</span>{% else %}—{% endif %}</td>
+            <td class="ocultar-movil">{% if auditoria.abierta %}<input type="text" maxlength="200" name="nota_{{ l.pk }}" value="{{ l.nota }}" aria-label="Nota de {{ l.producto.nombre }}">{% else %}{{ l.nota }}{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if auditoria.abierta %}
+    <div class="fila-accion" style="margin-top:16px">
+      <button class="btn" type="submit" name="accion" value="guardar">Guardar conteo</button>
+      <button class="btn btn--primario" type="submit" name="accion" value="cerrar">Cerrar y ajustar</button>
+      <span class="muy-tenue">Lo que dejes sin contar no se ajusta.</span>
+    </div>
+    {% endif %}
+  </form>
+  {% else %}
+  <div class="panel vacio"><svg class="i"><use href="#i-pin"/></svg><p>Esta ubicación no tenía existencias al abrir la auditoría.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

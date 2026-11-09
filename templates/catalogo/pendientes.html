@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block titulo %}Sin respuesta{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado">
+    <div>
+      <p class="muy-tenue"><a href="{% url 'catalogo_vehiculos' %}">¿Qué lleva el auto?</a></p>
+      <h1 style="margin-top:6px">Consultas sin respuesta</h1>
+      <p class="tenue">Lo que se buscó en el mostrador o se preguntó al asistente y el catálogo no supo contestar. Es la lista de datos por cargar{% if atendidas_n %} · {{ atendidas_n }} ya atendida{{ atendidas_n|pluralize }}{% endif %}.</p>
+    </div>
+  </header>
+  {% if pendientes %}
+  <div class="tabla-marco">
+    <table>
+      <thead><tr><th>Consulta</th><th class="ocultar-movil">Dónde</th><th class="ocultar-movil">Cuándo</th><th></th></tr></thead>
+      <tbody>
+        {% for c in pendientes %}
+        <tr>
+          <td><strong>{{ c.texto }}</strong></td>
+          <td class="ocultar-movil">{{ c.get_canal_display }}</td>
+          <td class="ocultar-movil num">{{ c.creada|date:"d M H:i" }}</td>
+          <td class="der"><form method="post" action="{% url 'catalogo_pendiente_atender' c.pk %}">{% csrf_token %}<button class="btn btn--chico" type="submit"><svg class="i"><use href="#i-check"/></svg> Atendida</button></form></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="panel vacio"><svg class="i"><use href="#i-check"/></svg><p>No hay consultas pendientes.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

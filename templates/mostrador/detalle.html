@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block titulo %}{{ orden.folio }}{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado">
+    <div>
+      <h1>{{ orden.folio }}</h1>
+      <p class="tenue">{{ orden.vehiculo }} · {% if puede.clientes %}<a href="{% url 'clientes:detalle' orden.vehiculo.cliente_id %}">{{ orden.cliente }}</a>{% else %}{{ orden.cliente }}{% endif %} · {{ orden.cliente.telefono }}</p>
+    </div>
+    <span class="chip chip--{{ orden.color }}">{{ orden.get_estado_display }}</span>
+  </header>
+
+  <ol class="pasos" aria-label="Avance de la orden">
+    {% for p in orden.pasos %}<li class="{{ p.clase }}"{% if p.clase == "actual" %} aria-current="step"{% endif %}>{{ p.nombre }}</li>{% endfor %}
+  </ol>
+
+  {% if orden.estado == "RECIBIDA" or orden.estado == "PRESUPUESTADA" %}
+  <section class="panel pendiente-accion">
+    <h2>{% if orden.estado == "RECIBIDA" %}Sigue: diagnóstico y presupuesto{% else %}Sigue: decisión del cliente{% endif %}</h2>
+    <p class="tenue">Lo atiende ventas.</p>
+    {% if puede.ventas %}<div class="fila-accion">
+      <a class="btn btn--primario" href="{% url 'ventas:presupuesto' orden.pk %}">Abrir presupuesto</a>
+      <form method="post" action="{% url 'ventas:cancelar' orden.pk %}">{% csrf_token %}<button class="btn btn--fantasma" type="submit">Cancelar orden</button></form>
+    </div>{% endif %}
+  </section>
+  {% elif orden.estado == "AUTORIZADA" %}
+  <section class="panel pendiente-accion">
+    <h2>Sigue: liberación de seguridad</h2>
+    <p class="tenue">Seguridad confirma los protocolos; sin esto no inicia la reparación ni salen piezas del almacén.</p>
+    <div class="fila-accion">
+      {% if puede.sst %}<a class="btn btn--primario" href="{% url 'sst:liberar' orden.pk %}">Liberar orden</a>{% endif %}
+      {% if puede.ventas %}<form method="post" action="{% url 'ventas:cancelar' orden.pk %}">{% csrf_token %}<button class="btn btn--fantasma" type="submit">Cancelar orden</button></form>{% endif %}
+    </div>
+  </section>
+  {% elif orden.estado == "EN_REPARACION" %}
+  <section class="panel pendiente-accion">
+    <h2>En reparación</h2>
+    <p class="tenue">Almacén entrega las piezas. Al terminar, la orden pasa a contabilidad.</p>
+    <div class="fila-accion">
+      {% if puede.almacen %}<a class="btn" href="{% url 'almacen:bandeja' %}">Ir al almacén</a>{% endif %}
+      {% if puede.terminar %}<form method="post" action="{% url 'ventas:terminar' orden.pk %}">{% csrf_token %}<button class="btn btn--primario" type="submit">Marcar terminada</button></form>{% endif %}
+    </div>
+  </section>
+  {% elif orden.estado == "TERMINADA" %}
+  <section class="panel pendiente-accion">
+    <h2>Sigue: facturar</h2>
+    <p class="tenue">Se cobran las refacciones que el almacén entregó y la mano de obra autorizada.</p>
+    {% if puede.contabilidad %}<div class="fila-accion"><form method="post" action="{% url 'contabilidad:emitir' orden.pk %}">{% csrf_token %}<button class="btn btn--primario" type="submit">Emitir factura</button></form></div>{% endif %}
+  </section>
+  {% elif orden.estado == "FACTURADA" %}
+  <section class="panel pendiente-accion">
+    {% if factura_vigente.estado == "PAGADA" %}
+    <h2>Sigue: entregar el vehículo</h2>
+    <p class="tenue">La factura {{ factura_vigente.folio }} ya está pagada.</p>
+    {% if puede.mostrador %}<div class="fila-accion"><form method="post" action="{% url 'mostrador:entregar' orden.pk %}">{% csrf_token %}<button class="btn btn--primario" type="submit">Entregar vehículo</button></form></div>{% endif %}
+    {% else %}
+    <h2>Sigue: cobrar</h2>
+    <p class="tenue">El vehículo se entrega cuando la factura {{ factura_vigente.folio }} esté pagada. Saldo: ${{ factura_vigente.saldo|floatformat:"2g" }}.</p>
+    {% if puede.contabilidad %}<div class="fila-accion"><a class="btn btn--primario" href="{% url 'contabilidad:factura' factura_vigente.pk %}">Registrar pago</a></div>{% endif %}
+    {% endif %}
+  </section>
+  {% endif %}
+
+  <div class="dos-columnas">
+    <div class="columna">
+      <section class="panel">
+        <div class="panel__cab"><h2>Recepción</h2><span class="muy-tenue">{{ orden.creada|date:"j M Y, H:i" }} · {{ orden.creada_por }}</span></div>
+        <div class="panel__cuerpo">
+          <p class="texto-largo">{{ orden.sintomas }}</p>
+          {% if orden.kilometraje %}<p class="muy-tenue">{{ orden.kilometraje }} km</p>{% endif %}
+        </div>
+      </section>
+
+      {% if presupuesto %}
+      <section class="panel">
+        <div class="panel__cab"><h2>Presupuesto</h2>{% if puede.ventas %}<a href="{% url 'ventas:presupuesto' orden.pk %}">Abrir</a>{% endif %}</div>
+        <div class="panel__cuerpo">
+          {% if presupuesto.diagnostico %}<p class="texto-largo">{{ presupuesto.diagnostico }}</p>{% endif %}
+          <ul class="lista">
+            {% for l in presupuesto.lineas.all %}
+            <li><span class="crece"><strong>{{ l.descripcion }}</strong><span class="muy-tenue">{{ l.cantidad }} × ${{ l.precio_unitario|floatformat:"2g" }}</span></span><span class="num">${{ l.importe|floatformat:"2g" }}</span></li>
+            {% endfor %}
+          </ul>
+          {% with m=presupuesto.montos %}<p class="der"><strong class="num">Total con IVA: ${{ m.total|floatformat:"2g" }}</strong></p>{% endwith %}
+          {% if presupuesto.decidido_en %}<p class="muy-tenue">Decidió {{ presupuesto.autorizado_por }} ({{ presupuesto.get_medio_display }}), {{ presupuesto.decidido_en|date:"j M, H:i" }}</p>{% endif %}
+        </div>
+      </section>
+      {% endif %}
+
+      {% if solicitudes %}
+      <section class="panel">
+        <div class="panel__cab"><h2>Piezas</h2>{% if puede.almacen %}<a href="{% url 'almacen:bandeja' %}">Almacén</a>{% endif %}</div>
+        <div class="panel__cuerpo">
+          <ul class="lista">
+            {% for s in solicitudes %}
+            <li><span class="crece"><strong>{{ s.producto.nombre }}</strong><span class="muy-tenue">{{ s.entregada }} de {{ s.cantidad }} entregadas</span></span><span class="chip chip--{{ s.color }}">{{ s.estado }}</span></li>
+            {% endfor %}
+          </ul>
+        </div>
+      </section>
+      {% endif %}
+    </div>
+
+    <div class="columna">
+      {% if facturas %}
+      <section class="panel">
+        <div class="panel__cab"><h2>Facturas</h2></div>
+        <div class="panel__cuerpo">
+          <ul class="lista">
+            {% for f in facturas %}
+            <li><span class="crece">{% if puede.contabilidad %}<a href="{% url 'contabilidad:factura' f.pk %}"><strong>{{ f.folio }}</strong></a>{% else %}<strong>{{ f.folio }}</strong>{% endif %}<span class="muy-tenue">${{ f.total|floatformat:"2g" }}</span></span><span class="chip chip--{{ f.color }}">{{ f.get_estado_display }}</span></li>
+            {% endfor %}
+          </ul>
+        </div>
+      </section>
+      {% endif %}
+      <section class="panel">
+        <div class="panel__cab"><h2>Historial</h2></div>
+        <div class="panel__cuerpo">
+          <ul class="lista">
+            {% for h in historial %}
+            <li><span class="crece"><strong>{{ h.get_estado_display }}</strong><span class="muy-tenue">{{ h.fecha|date:"j M, H:i" }} · {{ h.usuario }}{% if h.nota %} · {{ h.nota }}{% endif %}</span></span></li>
+            {% endfor %}
+          </ul>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}

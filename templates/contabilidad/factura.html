@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block titulo %}{{ factura.folio }}{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado">
+    <div>
+      <h1>{{ factura.folio }}</h1>
+      <p class="tenue">{{ factura.receptor_nombre }}{% if factura.receptor_rfc %} · RFC {{ factura.receptor_rfc }}{% endif %} · <a href="{% url 'mostrador:detalle' factura.orden_id %}">{{ factura.orden.folio }}</a></p>
+    </div>
+    <div class="acciones">
+      <span class="chip chip--{{ factura.color }}">{{ factura.get_estado_display }}</span>
+      <a class="btn" href="{% url 'contabilidad:imprimir' factura.pk %}" target="_blank" rel="noopener">Imprimir</a>
+    </div>
+  </header>
+  <div class="dos-columnas">
+    <section class="panel">
+      <div class="panel__cab"><h2>Conceptos</h2></div>
+      <div class="tabla-marco" style="border-width:1px 0;border-radius:0">
+        <table>
+          <thead><tr><th>Concepto</th><th class="der">Cant.</th><th class="der ocultar-movil">Precio</th><th class="der">Importe</th></tr></thead>
+          <tbody>
+            {% for l in factura.lineas.all %}
+            <tr><td>{{ l.descripcion }}</td><td class="der num">{{ l.cantidad }}</td><td class="der num ocultar-movil">${{ l.precio_unitario|floatformat:"2g" }}</td><td class="der num">${{ l.importe|floatformat:"2g" }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <dl class="totales">
+        <dt>Subtotal</dt><dd>${{ factura.subtotal|floatformat:"2g" }}</dd>
+        <dt>IVA</dt><dd>${{ factura.iva|floatformat:"2g" }}</dd>
+        <dt class="total">Total</dt><dd class="total">${{ factura.total|floatformat:"2g" }}</dd>
+      </dl>
+    </section>
+    <div class="columna">
+      {% if factura.estado == "EMITIDA" %}
+      <section class="panel">
+        <div class="panel__cab"><h2>Registrar pago</h2><strong class="num">Saldo ${{ factura.saldo|floatformat:"2g" }}</strong></div>
+        <div class="panel__cuerpo">
+          <form method="post" class="rejilla-form" style="grid-template-columns:1fr" novalidate>
+            {% csrf_token %}
+            {% for campo in form %}{% include "inventario/_campo.html" %}{% endfor %}
+            <div><button class="btn btn--primario" type="submit">Registrar pago</button></div>
+          </form>
+        </div>
+      </section>
+      {% endif %}
+      <section class="panel">
+        <div class="panel__cab"><h2>Pagos</h2></div>
+        <div class="panel__cuerpo">
+          <ul class="lista">
+            {% for p in factura.pagos.all %}
+            <li><span class="crece"><strong>{{ p.get_metodo_display }}</strong><span class="muy-tenue">{{ p.fecha|date:"j M, H:i" }}{% if p.referencia %} · {{ p.referencia }}{% endif %}</span></span><span class="num">${{ p.monto|floatformat:"2g" }}</span></li>
+            {% empty %}<li><span class="tenue">Sin pagos registrados.</span></li>
+            {% endfor %}
+          </ul>
+        </div>
+      </section>
+      {% if factura.estado == "EMITIDA" and not factura.pagos.exists %}
+      <form method="post" action="{% url 'contabilidad:cancelar' factura.pk %}">{% csrf_token %}<button class="btn btn--fantasma" type="submit">Cancelar factura</button></form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block titulo %}Almacén{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado">
+    <div><h1>Almacén</h1><p class="tenue">Piezas solicitadas por las órdenes autorizadas. Cada entrega descuenta del inventario.</p></div>
+    {% include "almacen/_menu.html" %}
+  </header>
+
+  <section class="panel">
+    <div class="panel__cab"><h2>Listas para entregar <span class="muy-tenue">({{ listas|length }})</span></h2></div>
+    {% if listas %}
+    <div class="alertas-lista">
+      {% for s in listas %}
+      <div class="alerta-fila">
+        <span class="crece">
+          <strong>{{ s.producto.nombre }}</strong>
+          <span class="muy-tenue" style="display:block"><a href="{% url 'mostrador:detalle' s.orden_id %}">{{ s.orden.folio }}</a> · {{ s.orden.vehiculo }} · faltan {{ s.pendiente }} de {{ s.cantidad }} · {{ s.stock }} en stock</span>
+        </span>
+        <div class="celda-acciones">
+          {% if s.stock %}<a class="btn btn--chico btn--primario" href="{% url 'almacen:entregar' s.pk %}">Entregar</a>{% endif %}
+          {% if not s.alcanza %}<form method="post" action="{% url 'almacen:pedir_faltante' s.pk %}">{% csrf_token %}<button class="btn btn--chico btn--ambar" type="submit">Pedir faltante</button></form>{% endif %}
+          <form method="post" action="{% url 'almacen:cancelar_pendiente' s.pk %}">{% csrf_token %}<button class="btn btn--chico btn--fantasma" type="submit">Ya no se ocupa</button></form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}<div class="vacio"><svg class="i"><use href="#i-check"/></svg><p>Nada por entregar.</p></div>{% endif %}
+  </section>
+
+  {% if por_liberar %}
+  <section class="panel seccion">
+    <div class="panel__cab"><h2>Esperando a seguridad <span class="muy-tenue">({{ por_liberar|length }})</span></h2></div>
+    <div class="alertas-lista">
+      {% for s in por_liberar %}
+      <div class="alerta-fila">
+        <span class="crece"><strong>{{ s.producto.nombre }}</strong><span class="muy-tenue" style="display:block"><a href="{% url 'mostrador:detalle' s.orden_id %}">{{ s.orden.folio }}</a> · {{ s.pendiente }} pieza{{ s.pendiente|pluralize }} · {{ s.stock }} en stock</span></span>
+        {% if not s.alcanza %}<form method="post" action="{% url 'almacen:pedir_faltante' s.pk %}">{% csrf_token %}<button class="btn btn--chico btn--ambar" type="submit">Pedir faltante</button></form>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if entregas %}
+  <section class="seccion">
+    <h2 style="margin-bottom:14px">Últimas entregas</h2>
+    <div class="tabla-marco">
+      <table>
+        <thead><tr><th>Pieza</th><th>Orden</th><th class="der">Cant.</th><th class="ocultar-movil">De</th><th class="ocultar-movil">Recibió</th><th>Fecha</th></tr></thead>
+        <tbody>
+          {% for e in entregas %}
+          <tr><td>{{ e.solicitud.producto.nombre }}</td><td><a class="codigo" href="{% url 'mostrador:detalle' e.solicitud.orden_id %}">{{ e.solicitud.orden.folio }}</a></td><td class="der num">{{ e.movimiento.cantidad }}</td><td class="ocultar-movil">{{ e.movimiento.ubicacion }}</td><td class="ocultar-movil">{{ e.recibio }}</td><td>{{ e.fecha|date:"j M, H:i" }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

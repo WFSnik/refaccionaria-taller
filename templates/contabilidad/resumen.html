@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block titulo %}Contabilidad{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado">
+    <div><h1>Contabilidad</h1><p class="tenue">Cobros y costos operacionales del mes en curso.</p></div>
+    {% include "contabilidad/_menu.html" %}
+  </header>
+  <section class="panel medidores">
+    <div class="medidor"><div class="medidor__valor num">${{ ingresos|floatformat:"2g" }}</div><div class="medidor__etiqueta">Cobrado este mes</div></div>
+    <div class="medidor"><div class="medidor__valor num">${{ gastos|floatformat:"2g" }}</div><div class="medidor__etiqueta">Gastos este mes</div></div>
+    <div class="medidor{% if resultado < 0 %} medidor--alerta{% endif %}"><div class="medidor__valor num">${{ resultado|floatformat:"2g" }}</div><div class="medidor__etiqueta">Cobrado menos gastos</div></div>
+    <div class="medidor"><div class="medidor__valor num">${{ saldo_por_cobrar|floatformat:"2g" }}</div><div class="medidor__etiqueta">Por cobrar</div></div>
+  </section>
+
+  <div class="dos-columnas seccion">
+    <div class="columna">
+      <section class="panel">
+        <div class="panel__cab"><h2>Órdenes por facturar <span class="muy-tenue">({{ por_facturar|length }})</span></h2></div>
+        <div class="panel__cuerpo">
+          {% if por_facturar %}
+          <ul class="lista">
+            {% for o in por_facturar %}
+            <li>
+              <span class="crece"><a href="{% url 'mostrador:detalle' o.pk %}"><strong>{{ o.folio }} · {{ o.vehiculo.cliente.nombre }}</strong></a><span class="muy-tenue">{{ o.vehiculo }}</span></span>
+              <form method="post" action="{% url 'contabilidad:emitir' o.pk %}">{% csrf_token %}<button class="btn btn--chico btn--primario" type="submit">Facturar</button></form>
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}<p class="tenue">Nada por facturar.</p>{% endif %}
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel__cab"><h2>Facturas por cobrar <span class="muy-tenue">({{ por_cobrar|length }})</span></h2></div>
+        <div class="panel__cuerpo">
+          {% if por_cobrar %}
+          <ul class="lista">
+            {% for f in por_cobrar %}
+            <li><span class="crece"><a href="{% url 'contabilidad:factura' f.pk %}"><strong>{{ f.folio }} · {{ f.receptor_nombre }}</strong></a><span class="muy-tenue">{{ f.fecha|date:"j M Y" }}</span></span><span class="num">${{ f.saldo|floatformat:"2g" }}</span></li>
+            {% endfor %}
+          </ul>
+          {% else %}<p class="tenue">Todo cobrado.</p>{% endif %}
+        </div>
+      </section>
+    </div>
+    <section class="panel">
+      <div class="panel__cab"><h2>Gastos por categoría</h2><a href="{% url 'contabilidad:gasto_crear' %}">Registrar gasto</a></div>
+      <div class="panel__cuerpo">
+        {% if gastos_categoria %}
+        <ul class="lista">
+          {% for g in gastos_categoria %}
+          <li><span class="crece">{% for valor, nombre in etiquetas.items %}{% if valor == g.categoria %}{{ nombre }}{% endif %}{% endfor %}</span><span class="num">${{ g.s|floatformat:"2g" }}</span></li>
+          {% endfor %}
+        </ul>
+        {% else %}<p class="tenue">Sin gastos este mes.</p>{% endif %}
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

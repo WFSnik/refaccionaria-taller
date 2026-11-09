@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block titulo %}Seguridad{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado">
+    <div><h1>Seguridad y salud en el trabajo</h1><p class="tenue">Protocolos, riesgos y protección de empleados. Ninguna reparación inicia sin liberación.</p></div>
+    <div class="acciones">
+      <a class="btn" href="{% url 'sst:epp_crear' %}"><svg class="i"><use href="#i-escudo"/></svg> Entregar EPP</a>
+      <a class="btn btn--ambar" href="{% url 'sst:incidente_crear' %}"><svg class="i"><use href="#i-alerta"/></svg> Reportar</a>
+    </div>
+  </header>
+
+  <section class="panel">
+    <div class="panel__cab"><h2>Órdenes por liberar <span class="muy-tenue">({{ por_liberar|length }})</span></h2></div>
+    <div class="panel__cuerpo">
+      {% if por_liberar %}
+      <ul class="lista">
+        {% for o in por_liberar %}
+        <li><span class="crece"><a href="{% url 'mostrador:detalle' o.pk %}"><strong>{{ o.folio }} · {{ o.vehiculo.cliente.nombre }}</strong></a><span class="muy-tenue">{{ o.vehiculo }}</span></span><a class="btn btn--chico btn--primario" href="{% url 'sst:liberar' o.pk %}">Liberar</a></li>
+        {% endfor %}
+      </ul>
+      {% else %}<p class="tenue">No hay órdenes esperando.</p>{% endif %}
+    </div>
+  </section>
+
+  <div class="dos-columnas seccion">
+    <section class="panel">
+      <div class="panel__cab"><h2>Protocolos</h2><a href="{% url 'sst:protocolo_crear' %}">Nuevo protocolo</a></div>
+      <div class="alertas-lista">
+        {% for p in protocolos %}
+        <div class="alerta-fila">
+          <span class="crece">
+            <a href="{% url 'sst:protocolo_editar' p.pk %}"><strong>{{ p.nombre }}</strong></a>
+            <span class="muy-tenue" style="display:block">{% if p.norma %}{{ p.norma }} · {% endif %}{% if p.requerido_en_orden %}Se verifica en cada orden · {% endif %}{% if p.ultima %}Última: {{ p.ultima.fecha|date:"j M Y" }}, {{ p.ultima.get_resultado_display|lower }}{% else %}Sin inspecciones{% endif %}</span>
+          </span>
+          {% if p.vencido %}<span class="chip chip--bajo">Vencido</span>{% elif p.ultima.resultado == "NO_CUMPLE" %}<span class="chip chip--agotado">No cumple</span>{% elif p.ultima %}<span class="chip chip--ok">Al día</span>{% endif %}
+          {% if p.frecuencia_dias %}<a class="btn btn--chico" href="{% url 'sst:inspeccion_crear' p.pk %}">Inspección</a>{% endif %}
+        </div>
+        {% empty %}<div class="vacio" style="padding:24px"><p>Sin protocolos.</p></div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <div class="columna">
+      <section class="panel">
+        <div class="panel__cab"><h2>Reportes abiertos <span class="muy-tenue">({{ incidentes|length }})</span></h2></div>
+        <div class="panel__cuerpo">
+          {% if incidentes %}
+          <ul class="lista">
+            {% for i in incidentes %}
+            <li><span class="crece"><a href="{% url 'sst:incidente_cerrar' i.pk %}"><strong>{{ i }}</strong></a><span class="muy-tenue">{{ i.descripcion|truncatechars:80 }}</span></span><span class="chip chip--{{ i.color }}">{{ i.get_severidad_display }}</span></li>
+            {% endfor %}
+          </ul>
+          {% else %}<p class="tenue">Sin reportes abiertos.</p>{% endif %}
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel__cab"><h2>Últimas entregas de EPP</h2></div>
+        <div class="panel__cuerpo">
+          {% if epp %}
+          <ul class="lista">
+            {% for e in epp %}
+            <li><span class="crece"><strong>{{ e.cantidad }} × {{ e.equipo }}</strong><span class="muy-tenue">{{ e.empleado }} · {{ e.fecha|date:"j M Y" }}</span></span></li>
+            {% endfor %}
+          </ul>
+          {% else %}<p class="tenue">Sin entregas registradas.</p>{% endif %}
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}

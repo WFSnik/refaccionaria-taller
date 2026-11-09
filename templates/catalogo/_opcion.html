@@ -1,0 +1,27 @@
+<article class="pieza" style="--i:{{ forloop.counter0 }}">
+  <header class="pieza__cab">
+    <span><span class="muy-tenue">Gonher</span> <strong class="codigo">{{ o.numero_gonher }}</strong></span>
+    {% if o.disponible %}<span class="chip chip--ok">En existencia</span>
+    {% elif o.productos %}<span class="chip chip--agotado">Agotado</span>
+    {% else %}<span class="chip chip--neutro">No lo manejamos</span>{% endif %}
+  </header>
+  {% if o.equivalencias %}
+  <p class="equivalencias">
+    <span class="muy-tenue">Equivale a</span>
+    {% for e in o.equivalencias %}
+    <a class="equiv{% if not e.confirmada %} equiv--duda{% endif %}" href="{% url 'catalogo_numero' %}?n={{ e.numero|urlencode }}" title="{{ e.get_confianza_display }}">{{ e.marca }} {{ e.numero }}{% if not e.confirmada %}<small>por confirmar</small>{% endif %}</a>
+    {% endfor %}
+  </p>
+  {% endif %}
+  {% if o.productos %}
+  <ul class="lista pieza__inventario">
+    {% for p in o.productos %}
+    <li>
+      <span class="crece"><a href="{% url 'producto_detalle' p.pk %}"><strong>{{ p.marca }} {{ p.numero_parte }}</strong></a>
+        <span class="muy-tenue">{{ p.codigo }} · ${{ p.precio_venta|floatformat:"2g" }}{% for e in p.existencias.all %} · {{ e.ubicacion.codigo }}{% endfor %}</span></span>
+      <strong class="num">{{ p.stock }}</strong>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</article>

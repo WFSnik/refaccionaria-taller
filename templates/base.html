@@ -1,0 +1,115 @@
+{% load static %}<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}Inventario{% endblock %} · Refaccionaria</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3C16 3 6 14.5 6 20.5a10 10 0 0 0 20 0C26 14.5 16 3 16 3Z' fill='%230e3a5b'/%3E%3Cpath d='M8.2 21h15.6a8 8 0 0 1-15.6 0Z' fill='%23d4940a'/%3E%3C/svg%3E">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-tablero" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></symbol>
+  <symbol id="i-caja" viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8"/></symbol>
+  <symbol id="i-flechas" viewBox="0 0 24 24"><path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></symbol>
+  <symbol id="i-campana" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15L6 16ZM10 20.5a2 2 0 0 0 4 0"/></symbol>
+  <symbol id="i-mas" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-buscar" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></symbol>
+  <symbol id="i-salir" viewBox="0 0 24 24"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 16l-4-4 4-4M6 12h10"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-alerta" viewBox="0 0 24 24"><path d="M12 4 2.5 20h19L12 4Z"/><path d="M12 10v4M12 17h.01"/></symbol>
+  <symbol id="i-flecha" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-entrada" viewBox="0 0 24 24"><path d="M12 3v11M7.5 9.5 12 14l4.5-4.5M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></symbol>
+  <symbol id="i-salida" viewBox="0 0 24 24"><path d="M12 14V3M7.5 7.5 12 3l4.5 4.5M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-editar" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4ZM13.5 6.5l4 4"/></symbol>
+  <symbol id="i-auto" viewBox="0 0 24 24"><path d="M5 16V11l2-5h10l2 5v5M3 16h18v3H3zM5 11h14"/><circle cx="7.5" cy="13.5" r=".6"/><circle cx="16.5" cy="13.5" r=".6"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4V5Z"/><path d="M8 9.5h8M8 12.5h5"/></symbol>
+  <symbol id="i-bidon" viewBox="0 0 24 24"><path d="M8 3h5l2 3h3a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V9l3-3V3Z"/><path d="M5 14h14"/></symbol>
+  <symbol id="i-flujo" viewBox="0 0 24 24"><rect x="3" y="4" width="6" height="5" rx="1"/><rect x="15" y="4" width="6" height="5" rx="1"/><rect x="9" y="15" width="6" height="5" rx="1"/><path d="M9 6.5h6M18 9v3.5h-6V15"/></symbol>
+  <symbol id="i-usuarios" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.4c1.9.8 3 2.9 3 5.6"/></symbol>
+  <symbol id="i-recepcion" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/></symbol>
+  <symbol id="i-presupuesto" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h2M14 11h2M8 15h2M14 15h2"/></symbol>
+  <symbol id="i-almacen" viewBox="0 0 24 24"><path d="M3 21V9l9-5 9 5v12"/><path d="M7 21v-8h10v8M7 17h10"/></symbol>
+  <symbol id="i-camion" viewBox="0 0 24 24"><path d="M2 6h12v11H2zM14 10h4l4 4v3h-8"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></symbol>
+  <symbol id="i-factura" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"/><path d="M9 8h6M9 12h6"/></symbol>
+  <symbol id="i-escudo" viewBox="0 0 24 24"><path d="M12 3 5 6v5.5c0 4.5 2.9 7.7 7 9.5 4.1-1.8 7-5 7-9.5V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-lista" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6l1 1 1.5-2M4 12l1 1 1.5-2M4 18l1 1 1.5-2"/></symbol>
+</svg>
+{% if user.is_authenticated %}
+{% with u=request.resolver_match.url_name m=request.resolver_match.namespace %}
+<div class="app">
+  <div class="velo" data-menu></div>
+  <aside class="lateral">
+    <a class="marca" href="{% url 'dashboard' %}">
+      {% include "inventario/_gota.html" %}
+      <span><span class="marca__nombre">Refaccionaria</span><span class="marca__sub">Taller e inventario</span></span>
+    </a>
+    <nav class="nav" aria-label="Principal">
+      <span class="nav__indicador" aria-hidden="true"></span>
+      <span class="nav__grupo">Taller</span>
+      <a href="{% url 'taller:flujo' %}" {% if m == 'taller' %}aria-current="page"{% endif %}><svg class="i"><use href="#i-flujo"/></svg>Flujo del taller</a>
+      {% if puede.clientes %}<a href="{% url 'clientes:lista' %}" {% if m == 'clientes' %}aria-current="page"{% endif %}><svg class="i"><use href="#i-usuarios"/></svg>Clientes</a>{% endif %}
+      {% if puede.ordenes %}<a href="{% url 'mostrador:lista' %}" {% if m == 'mostrador' %}aria-current="page"{% endif %}><svg class="i"><use href="#i-recepcion"/></svg>Mostrador</a>{% endif %}
+      {% if puede.ventas %}<a href="{% url 'ventas:bandeja' %}" {% if m == 'ventas' %}aria-current="page"{% endif %}><svg class="i"><use href="#i-presupuesto"/></svg>Ventas</a>{% endif %}
+      {% if puede.sst %}<a href="{% url 'sst:panel' %}" {% if m == 'sst' %}aria-current="page"{% endif %}><svg class="i"><use href="#i-escudo"/></svg>Seguridad</a>{% endif %}
+      {% if puede.almacen %}<a href="{% url 'almacen:bandeja' %}" {% if m == 'almacen' %}aria-current="page"{% endif %}><svg class="i"><use href="#i-almacen"/></svg>Almacén</a>{% endif %}
+      {% if puede.proveedores %}<a href="{% url 'proveedores:bandeja' %}" {% if m == 'proveedores' %}aria-current="page"{% endif %}><svg class="i"><use href="#i-camion"/></svg>Proveedores</a>{% endif %}
+      {% if puede.contabilidad %}<a href="{% url 'contabilidad:resumen' %}" {% if m == 'contabilidad' %}aria-current="page"{% endif %}><svg class="i"><use href="#i-factura"/></svg>Contabilidad</a>{% endif %}
+      <span class="nav__grupo">Inventario</span>
+      <a href="{% url 'dashboard' %}" {% if u == 'dashboard' %}aria-current="page"{% endif %}><svg class="i"><use href="#i-tablero"/></svg>Tablero</a>
+      <a href="{% url 'movimiento_nuevo' %}" {% if u == 'movimiento_nuevo' %}aria-current="page"{% endif %}><svg class="i"><use href="#i-mas"/></svg>Alta o baja</a>
+      <a href="{% url 'productos_lista' %}" {% if u == 'productos_lista' or u == 'producto_detalle' or u == 'producto_crear' or u == 'producto_editar' %}aria-current="page"{% endif %}><svg class="i"><use href="#i-caja"/></svg>Productos</a>
+      <a href="{% url 'movimientos_lista' %}" {% if u == 'movimientos_lista' %}aria-current="page"{% endif %}><svg class="i"><use href="#i-flechas"/></svg>Movimientos</a>
+      <a href="{% url 'auditorias' %}" {% if u == 'auditorias' or u == 'auditoria_detalle' %}aria-current="page"{% endif %}><svg class="i"><use href="#i-lista"/></svg>Auditorías</a>
+      <a href="{% url 'ubicaciones' %}" {% if u == 'ubicaciones' %}aria-current="page"{% endif %}><svg class="i"><use href="#i-pin"/></svg>Ubicaciones</a>
+      <a href="{% url 'alertas' %}" {% if u == 'alertas' %}aria-current="page"{% endif %}><svg class="i"><use href="#i-campana"/></svg>Reorden{% if alertas_pendientes %}<span class="contador" aria-label="{{ alertas_pendientes }} pendientes">{{ alertas_pendientes }}</span>{% endif %}</a>
+      <span class="nav__grupo">Consulta</span>
+      <a href="{% url 'catalogo_vehiculos' %}" {% if u == 'catalogo_vehiculos' or u == 'catalogo_numero' or u == 'catalogo_pendientes' %}aria-current="page"{% endif %}><svg class="i"><use href="#i-auto"/></svg>¿Qué lleva?</a>
+      <a href="{% url 'asistente_chat' %}" {% if u == 'asistente_chat' %}aria-current="page"{% endif %}><svg class="i"><use href="#i-chat"/></svg>Asistente</a>
+    </nav>
+    <div class="lateral__pie">
+      <span class="avatar">{{ user.get_username|slice:":2" }}</span>
+      <span class="usuario">{{ user.get_full_name|default:user.get_username }}</span>
+      <form method="post" action="{% url 'logout' %}">{% csrf_token %}
+        <button class="btn-icono" type="submit" aria-label="Cerrar sesión" title="Cerrar sesión"><svg class="i"><use href="#i-salir"/></svg></button>
+      </form>
+    </div>
+  </aside>
+  <div>
+    <div class="barra-movil">
+      <button class="btn-icono" type="button" data-menu aria-label="Abrir menú"><svg class="i"><use href="#i-menu"/></svg></button>
+      <span class="marca__nombre">Refaccionaria</span>
+    </div>
+    <main class="principal">
+      {% block contenido %}{% endblock %}
+    </main>
+  </div>
+</div>
+{% endwith %}
+{% else %}
+  {% block publico %}{% endblock %}
+{% endif %}
+
+{% if messages %}
+<div class="avisos" role="status" aria-live="polite">
+  {% for m in messages %}
+  <div class="toast toast--{{ m.tags|default:'info' }}">
+    <span class="toast__icono"><svg class="i"><use href="{% if m.tags == 'success' %}#i-check{% else %}#i-alerta{% endif %}"/></svg></span>
+    <p>{{ m }}</p>
+    <button class="btn-icono" type="button" aria-label="Cerrar aviso" style="width:26px;height:26px"><svg class="i"><use href="#i-x"/></svg></button>
+    <span class="toast__tiempo"></span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+<script src="{% static 'js/app.js' %}" defer></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

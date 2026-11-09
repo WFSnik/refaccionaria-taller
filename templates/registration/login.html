@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block titulo %}Entrar{% endblock %}
+{% block publico %}
+<div class="acceso">
+  <section class="acceso__arte">
+    <span class="marca">
+      <svg class="gota" viewBox="0 0 34 34" aria-hidden="true">
+        <path d="M17 2.5S6 15 6 21.5a11 11 0 0 0 22 0C28 15 17 2.5 17 2.5Z" fill="none" stroke="#fff" stroke-width="2"/>
+        <path class="gota__liquido" d="M8.1 21.5h17.8a8.9 8.9 0 0 1-17.8 0Z" fill="#d4940a"/>
+      </svg>
+      <span><span class="marca__nombre">Refaccionaria</span><span class="marca__sub">Filtros y lubricantes</span></span>
+    </span>
+    <div>
+      <h1>El inventario al nivel correcto.</h1>
+      <p style="margin-top:16px">Entradas, salidas y ubicaciones de cada aceite y filtro, con aviso a compras antes de que se agote.</p>
+    </div>
+    <div class="tubos" aria-hidden="true">
+      <div class="tubo" style="--alto:180px;--nivel:72%;--retraso:.4s"><span></span></div>
+      <div class="tubo" style="--alto:250px;--nivel:38%;--retraso:.55s"><span></span></div>
+      <div class="tubo" style="--alto:140px;--nivel:88%;--retraso:.7s"><span></span></div>
+      <div class="tubo" style="--alto:210px;--nivel:55%;--retraso:.85s"><span></span></div>
+    </div>
+  </section>
+  <section class="acceso__forma">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div>
+        <h2>Entrar</h2>
+        <p class="tenue" style="margin-top:6px">Usa tu usuario del sistema.</p>
+      </div>
+      {% if form.non_field_errors %}<div class="errores-form">Usuario o contraseña incorrectos. Revisa mayúsculas e intenta de nuevo.</div>{% endif %}
+      <div class="campo">
+        <label for="id_username">Usuario</label>
+        <input type="text" name="username" id="id_username" autocomplete="username" autofocus required value="{{ form.username.value|default:'' }}">
+      </div>
+      <div class="campo">
+        <label for="id_password">Contraseña</label>
+        <input type="password" name="password" id="id_password" autocomplete="current-password" required>
+      </div>
+      <input type="hidden" name="next" value="{{ next }}">
+      <button class="btn btn--primario" type="submit" style="min-height:46px">Entrar</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block titulo %}Gastos{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado">
+    <div><h1>Gastos</h1><p class="tenue">Costos operacionales. Las compras y el equipo de protección se registran solos.</p></div>
+    <div class="acciones">
+      {% include "contabilidad/_menu.html" %}
+      <a class="btn btn--primario" href="{% url 'contabilidad:gasto_crear' %}"><svg class="i"><use href="#i-mas"/></svg> Nuevo gasto</a>
+    </div>
+  </header>
+  {% if pagina.object_list %}
+  <div class="tabla-marco">
+    <table>
+      <thead><tr><th>Fecha</th><th>Concepto</th><th class="ocultar-movil">Categoría</th><th class="ocultar-movil">Referencia</th><th class="der">Monto</th></tr></thead>
+      <tbody>
+        {% for g in pagina %}
+        <tr><td>{{ g.fecha|date:"j M Y" }}</td><td>{{ g.concepto }}</td><td class="ocultar-movil">{{ g.get_categoria_display }}</td><td class="ocultar-movil">{{ g.referencia|default:"—" }}</td><td class="der num">${{ g.monto|floatformat:"2g" }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "inventario/_paginacion.html" %}
+  {% else %}<div class="panel vacio"><svg class="i"><use href="#i-lista"/></svg><p>Aún no hay gastos registrados.</p></div>{% endif %}
+</div>
+{% endblock %}

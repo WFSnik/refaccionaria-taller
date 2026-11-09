@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% load static %}
+{% block titulo %}Asistente de piezas{% endblock %}
+{% block contenido %}{% include "asistente/_chat.html" %}{% endblock %}
+{% block publico %}<main class="chat-publico">{% include "asistente/_chat.html" %}</main>{% endblock %}
+{% block scripts %}<script src="{% static 'js/chat.js' %}" defer></script>{% endblock %}

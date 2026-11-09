@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block titulo %}{{ orden.folio }}{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado">
+    <div><h1>{{ orden.folio }}</h1><p class="tenue">{{ orden.proveedor }}{% if orden.proveedor.telefono %} · {{ orden.proveedor.telefono }}{% endif %} · entrega en {{ orden.proveedor.dias_entrega }} día{{ orden.proveedor.dias_entrega|pluralize }}</p></div>
+    <div class="acciones">
+      <span class="chip chip--{{ orden.color }}">{{ orden.get_estado_display }}</span>
+      <a class="btn" href="{% url 'proveedores:ordenes' %}">Volver</a>
+    </div>
+  </header>
+  <form method="post">
+    {% csrf_token %}
+    <div class="tabla-marco">
+      <table>
+        <thead><tr><th>Producto</th><th class="der">Pedido</th><th class="der">Recibido</th><th class="der ocultar-movil">Costo</th><th class="der">Importe</th>{% if abierta %}<th class="der">Recibir</th>{% endif %}</tr></thead>
+        <tbody>
+          {% for l in lineas %}
+          <tr>
+            <td class="celda-producto"><strong>{{ l.producto.nombre }}</strong><span class="codigo">{{ l.producto.codigo }}</span></td>
+            <td class="der num">{{ l.cantidad }}</td>
+            <td class="der num">{{ l.recibido }}</td>
+            <td class="der num ocultar-movil">${{ l.costo_unitario|floatformat:"2g" }}</td>
+            <td class="der num">${{ l.importe|floatformat:"2g" }}</td>
+            {% if abierta %}<td class="der">{% if l.pendiente %}<input class="input-corto" type="number" min="0" max="{{ l.pendiente }}" name="linea_{{ l.pk }}" value="{{ l.pendiente }}" aria-label="Cantidad recibida de {{ l.producto.nombre }}">{% else %}<span class="chip chip--ok">Completo</span>{% endif %}</td>{% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <dl class="totales"><dt class="total">Total</dt><dd class="total">${{ orden.total|floatformat:"2g" }}</dd></dl>
+    {% if abierta %}
+    <section class="panel" style="padding:18px 20px">
+      <div class="filtros" style="margin:0;align-items:flex-end">
+        <div style="flex:1 1 260px">{% include "inventario/_campo.html" with campo=form.ubicacion %}</div>
+        <button class="btn btn--primario" type="submit">Registrar recepción</button>
+      </div>
+    </section>
+    {% endif %}
+  </form>
+  {% if orden.estado == "ENVIADA" %}
+  <form method="post" action="{% url 'proveedores:orden_cancelar' orden.pk %}" style="margin-top:12px">{% csrf_token %}<button class="btn btn--fantasma" type="submit">Cancelar orden de compra</button></form>
+  {% endif %}
+</div>
+{% endblock %}

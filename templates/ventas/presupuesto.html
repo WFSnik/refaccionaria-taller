@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block titulo %}Presupuesto {{ orden.folio }}{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado">
+    <div>
+      <h1>Presupuesto {{ orden.folio }}</h1>
+      <p class="tenue">{{ orden.vehiculo }} · {{ orden.cliente }} · {{ orden.cliente.telefono }}</p>
+    </div>
+    <div class="acciones">
+      <span class="chip chip--{{ orden.color }}">{{ orden.get_estado_display }}</span>
+      <a class="btn" href="{% url 'mostrador:detalle' orden.pk %}">Ver orden</a>
+    </div>
+  </header>
+
+  <p class="aviso"><strong>Síntomas:</strong> {{ orden.sintomas }}</p>
+
+  <div class="dos-columnas seccion">
+    <div class="columna">
+      <section class="panel">
+        <div class="panel__cab"><h2>Diagnóstico inicial</h2></div>
+        <div class="panel__cuerpo">
+          {% if presupuesto.editable %}
+          <form method="post" class="rejilla-form">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="diagnostico">
+            {% include "inventario/_campo.html" with campo=diagnostico_form.diagnostico %}
+            <div><button class="btn" type="submit">Guardar diagnóstico</button></div>
+          </form>
+          {% else %}
+          <p class="texto-largo">{{ presupuesto.diagnostico }}</p>
+          {% endif %}
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__cab"><h2>Conceptos</h2></div>
+        {% if lineas %}
+        <div class="tabla-marco" style="border-width:1px 0;border-radius:0">
+          <table>
+            <thead><tr><th>Concepto</th><th class="der">Cant.</th><th class="der ocultar-movil">Precio</th><th class="der">Importe</th>{% if presupuesto.editable %}<th><span class="muy-tenue">Quitar</span></th>{% endif %}</tr></thead>
+            <tbody>
+              {% for l in lineas %}
+              <tr>
+                <td class="celda-producto"><strong>{{ l.descripcion }}</strong><span>{% if l.producto %}Refacción · {{ l.producto.codigo }} · {{ l.producto.stock_total }} en stock{% else %}Mano de obra{% endif %}</span></td>
+                <td class="der num">{{ l.cantidad }}</td>
+                <td class="der num ocultar-movil">${{ l.precio_unitario|floatformat:"2g" }}</td>
+                <td class="der num">${{ l.importe|floatformat:"2g" }}</td>
+                {% if presupuesto.editable %}<td><form method="post" action="{% url 'ventas:quitar_linea' l.pk %}">{% csrf_token %}<button class="btn-icono" type="submit" aria-label="Quitar {{ l.descripcion }}"><svg class="i"><use href="#i-x"/></svg></button></form></td>{% endif %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <dl class="totales">
+          <dt>Subtotal</dt><dd>${{ montos.subtotal|floatformat:"2g" }}</dd>
+          <dt>IVA</dt><dd>${{ montos.iva|floatformat:"2g" }}</dd>
+          <dt class="total">Total</dt><dd class="total">${{ montos.total|floatformat:"2g" }}</dd>
+        </dl>
+        {% else %}
+        <div class="vacio" style="padding:24px"><p>Agrega refacciones o mano de obra.</p></div>
+        {% endif %}
+      </section>
+    </div>
+
+    <div class="columna">
+      {% if presupuesto.editable %}
+      <section class="panel">
+        <div class="panel__cab"><h2>Agregar refacción</h2></div>
+        <div class="panel__cuerpo">
+          <form method="post" class="rejilla-form" style="grid-template-columns:1fr">
+            {% csrf_token %}<input type="hidden" name="accion" value="refaccion">
+            {% for campo in refaccion_form %}{% include "inventario/_campo.html" %}{% endfor %}
+            <div><button class="btn" type="submit">Agregar</button></div>
+          </form>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel__cab"><h2>Agregar mano de obra</h2></div>
+        <div class="panel__cuerpo">
+          <form method="post" class="rejilla-form" style="grid-template-columns:1fr">
+            {% csrf_token %}<input type="hidden" name="accion" value="servicio">
+            {% for campo in servicio_form %}{% include "inventario/_campo.html" %}{% endfor %}
+            <div><button class="btn" type="submit">Agregar</button></div>
+          </form>
+        </div>
+      </section>
+      <section class="panel pendiente-accion" style="margin:0">
+        <h2>¿Listo?</h2>
+        <p class="tenue">Al enviarlo queda esperando la decisión del cliente.</p>
+        <form method="post" class="fila-accion">{% csrf_token %}<input type="hidden" name="accion" value="enviar"><button class="btn btn--primario" type="submit">Enviar presupuesto</button></form>
+      </section>
+      {% elif orden.estado == "PRESUPUESTADA" %}
+      <section class="panel">
+        <div class="panel__cab"><h2>Decisión del cliente</h2></div>
+        <div class="panel__cuerpo">
+          <form method="post" class="rejilla-form" style="grid-template-columns:1fr">
+            {% csrf_token %}
+            {% for campo in decision_form %}{% include "inventario/_campo.html" %}{% endfor %}
+            <div class="fila-accion">
+              <button class="btn btn--primario" type="submit" name="accion" value="autorizar">Autorizar reparación</button>
+              <button class="btn" type="submit" name="accion" value="rechazar">Rechazó</button>
+            </div>
+          </form>
+          <form method="post" style="margin-top:12px">{% csrf_token %}<input type="hidden" name="accion" value="editar"><button class="btn btn--fantasma btn--chico" type="submit">Regresar a edición</button></form>
+        </div>
+      </section>
+      {% elif presupuesto.decidido_en %}
+      <section class="panel">
+        <div class="panel__cab"><h2>Decisión del cliente</h2></div>
+        <div class="panel__cuerpo"><p>{{ presupuesto.autorizado_por }}, {{ presupuesto.get_medio_display|lower }}.</p><p class="muy-tenue">{{ presupuesto.decidido_en|date:"j M Y, H:i" }}</p></div>
+      </section>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

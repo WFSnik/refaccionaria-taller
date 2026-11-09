@@ -1,0 +1,35 @@
+<div class="revelar chat-marco">
+  <header class="encabezado">
+    <div class="chat-titulo">
+      {% include "inventario/_gota.html" %}
+      <div>
+        <h1>Asistente de piezas</h1>
+        <p class="tenue">Dime marca, modelo y año de tu vehículo y te digo qué filtros lleva y si los tenemos.</p>
+      </div>
+    </div>
+    <form method="post" action="{% url 'asistente_nueva' %}">{% csrf_token %}
+      <button class="btn btn--fantasma btn--chico" type="submit">Nueva conversación</button>
+    </form>
+  </header>
+
+  {% if modo == "basico" %}
+  <p class="aviso chat-aviso">Modo básico: el asistente entiende mensajes simples como «versa 2015» o «PH7317». Para que converse con Claude, agrega <code>ANTHROPIC_API_KEY</code> en <code>.env</code>.</p>
+  {% endif %}
+
+  <section class="panel chat" data-chat data-url="{% url 'asistente_mensaje' %}">
+    <ol class="chat__mensajes" aria-live="polite">
+      <li class="burbuja burbuja--asistente">¡Hola! ¿Qué vehículo tienes? Por ejemplo: «Nissan Versa 2015» o el número del filtro que traes.</li>
+      {% for rol, texto in mensajes %}<li class="burbuja burbuja--{{ rol }}">{{ texto|linebreaksbr }}</li>{% endfor %}
+    </ol>
+    <form class="chat__entrada">
+      {% csrf_token %}
+      <input type="text" name="texto" maxlength="500" autocomplete="off" placeholder="Escribe tu mensaje" aria-label="Mensaje" required>
+      <button class="btn btn--primario" type="submit" aria-label="Enviar"><svg class="i"><use href="#i-flecha"/></svg></button>
+    </form>
+  </section>
+  <div class="ejemplos__lista chat__sugerencias">
+    <button class="equiv" type="button" data-sugerencia>¿Qué filtro de aceite lleva un Versa 2015?</button>
+    <button class="equiv" type="button" data-sugerencia>Tengo un Tsuru 2012, ¿tienen filtro de aire?</button>
+    <button class="equiv" type="button" data-sugerencia>¿El PH7317 tiene equivalente?</button>
+  </div>
+</div>

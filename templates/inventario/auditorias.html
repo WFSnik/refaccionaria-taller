@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block titulo %}Auditorías{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado"><div><h1>Auditorías de inventario</h1><p class="tenue">Cuenta una ubicación y compara con el sistema. Al cerrar, las diferencias quedan como ajustes.</p></div></header>
+  <form method="post" class="panel filtros" style="padding:18px;align-items:flex-end">
+    {% csrf_token %}
+    <div class="campo" style="flex:1 1 260px">
+      <label for="id_ubicacion">Ubicación a contar</label>
+      <select name="ubicacion" id="id_ubicacion" required>
+        {% for u in ubicaciones %}<option value="{{ u.pk }}">{{ u.codigo }}{% if u.descripcion %} · {{ u.descripcion }}{% endif %}</option>{% endfor %}
+      </select>
+    </div>
+    <button class="btn btn--primario" type="submit" {% if not ubicaciones %}disabled{% endif %}><svg class="i"><use href="#i-mas"/></svg> Abrir auditoría</button>
+  </form>
+  {% if auditorias %}
+  <div class="tabla-marco seccion">
+    <table>
+      <thead><tr><th>Folio</th><th>Ubicación</th><th class="ocultar-movil">Abrió</th><th>Fecha</th><th>Estado</th></tr></thead>
+      <tbody>
+        {% for a in auditorias %}
+        <tr data-href="{% url 'auditoria_detalle' a.pk %}">
+          <td><a class="codigo" href="{% url 'auditoria_detalle' a.pk %}">{{ a.folio }}</a></td>
+          <td>{{ a.ubicacion }}</td>
+          <td class="ocultar-movil">{{ a.usuario }}</td>
+          <td>{{ a.creada|date:"j M, H:i" }}</td>
+          <td>{% if a.abierta %}<span class="chip chip--bajo">Abierta</span>{% else %}<span class="chip chip--ok">Cerrada</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}<div class="panel vacio seccion"><svg class="i"><use href="#i-lista"/></svg><p>Aún no hay auditorías.</p></div>{% endif %}
+</div>
+{% endblock %}

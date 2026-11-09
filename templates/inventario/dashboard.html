@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% load inventario_tags l10n %}
+{% block titulo %}Tablero{% endblock %}
+{% block contenido %}
+<div class="revelar">
+  <header class="encabezado">
+    <div>
+      <h1>Tablero</h1>
+      {% now "l" as dia %}{% now "F" as mes %}
+      <p class="tenue">{{ dia|capfirst }} {% now "j" %} de {{ mes|lower }}</p>
+    </div>
+    <div class="acciones">
+      <a class="btn" href="{% url 'movimiento_nuevo' %}?tipo=BAJA"><svg class="i"><use href="#i-salida"/></svg> Registrar baja</a>
+      <a class="btn btn--primario" href="{% url 'movimiento_nuevo' %}?tipo=ALTA"><svg class="i"><use href="#i-entrada"/></svg> Registrar alta</a>
+    </div>
+  </header>
+
+  <section class="medidores" aria-label="Resumen">
+    <div class="medidor">
+      <div class="medidor__valor num" data-contar="{{ productos_n|unlocalize }}">{{ productos_n }}</div>
+      <div class="medidor__etiqueta">Productos activos</div>
+    </div>
+    <div class="medidor">
+      <div class="medidor__valor num" data-contar="{{ unidades|unlocalize }}" data-retraso="250">{{ unidades }}</div>
+      <div class="medidor__etiqueta">Unidades en almacén</div>
+    </div>
+    <div class="medidor">
+      <div class="medidor__valor num" data-contar="{{ valor|unlocalize }}" data-formato="moneda" data-retraso="350">${{ valor|floatformat:"0g" }}</div>
+      <div class="medidor__etiqueta">Valor a costo</div>
+    </div>
+    <div class="medidor{% if alertas_pendientes %} medidor--alerta{% endif %}">
+      <div class="medidor__valor num" data-contar="{{ alertas_pendientes|default:0 }}" data-retraso="450">{{ alertas_pendientes|default:0 }}</div>
+      <div class="medidor__etiqueta">Alertas de reorden pendientes</div>
+    </div>
+  </section>
+
+  <div class="rejilla-tablero">
+    <div class="columna">
+      <section class="panel">
+        <div class="panel__cab">
+          <h2>Por reordenar</h2>
+          <a href="{% url 'productos_lista' %}?estado=bajo">Ver todos</a>
+        </div>
+        <div class="panel__cuerpo">
+          {% if por_reordenar %}
+          <ul class="lista">
+            {% for p in por_reordenar %}
+            <li>
+              <span class="crece"><a href="{% url 'producto_detalle' p.pk %}"><strong>{{ p.nombre }}</strong></a><span class="muy-tenue">{{ p.codigo }} · {{ p.marca }}</span></span>
+              {% nivel p.stock p.punto_reorden %}
+              <span class="num" style="min-width:64px;text-align:right"><strong>{{ p.stock }}</strong> <span class="muy-tenue">/ {{ p.punto_reorden }}</span></span>
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <div class="vacio"><svg class="i"><use href="#i-check"/></svg><p>Todo el inventario está arriba de su punto de reorden.</p></div>
+          {% endif %}
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__cab">
+          <h2>Existencias por categoría</h2>
+        </div>
+        <div class="panel__cuerpo categorias">
+          {% for c in categorias %}
+          <div class="barra-cat" style="--i: {{ forloop.counter0 }}">
+            <span>{{ c.nombre }} <span class="muy-tenue">· {{ c.productos_n }} producto{{ c.productos_n|pluralize }}</span></span>
+            <strong class="num">{{ c.unidades|floatformat:"0g" }}</strong>
+            <div class="barra-cat__pista"><span style="--pct: {{ c.pct|unlocalize }}%"></span></div>
+          </div>
+          {% empty %}
+          <p class="tenue">Aún no hay productos registrados.</p>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+
+    <section class="panel">
+      <div class="panel__cab">
+        <h2>Últimos movimientos</h2>
+        <a href="{% url 'movimientos_lista' %}">Historial</a>
+      </div>
+      <div class="panel__cuerpo">
+        <p class="muy-tenue" style="margin-bottom:6px">Hoy: {{ movs_hoy.altas }} alta{{ movs_hoy.altas|pluralize }} y {{ movs_hoy.bajas }} baja{{ movs_hoy.bajas|pluralize }}</p>
+        {% if ultimos %}
+        <ul class="lista">
+          {% for m in ultimos %}
+          <li>
+            <span class="mov-icono mov-icono--{{ m.tipo|lower }}"><svg class="i"><use href="{% if m.tipo == 'ALTA' %}#i-entrada{% else %}#i-salida{% endif %}"/></svg></span>
+            <span class="crece">
+              <a href="{% url 'producto_detalle' m.producto_id %}"><strong>{{ m.producto.nombre }}</strong></a>
+              <span class="muy-tenue">{{ m.get_motivo_display }} · {{ m.ubicacion }} · {{ m.fecha|timesince }}</span>
+            </span>
+            <strong class="num">{% if m.tipo == 'ALTA' %}+{% else %}−{% endif %}{{ m.cantidad }}</strong>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="vacio"><svg class="i"><use href="#i-flechas"/></svg><p>Todavía no hay movimientos.</p><a class="btn btn--primario" href="{% url 'movimiento_nuevo' %}?tipo=ALTA">Registrar la primera alta</a></div>
+        {% endif %}
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

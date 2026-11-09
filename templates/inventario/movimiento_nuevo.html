@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% load static %}
+{% block titulo %}Alta o baja{% endblock %}
+{% block contenido %}
+<div class="revelar" style="max-width:880px">
+  <header class="encabezado">
+    <div>
+      <h1>Alta o baja</h1>
+      <p class="tenue">Registra la entrada o salida de producto y el stock se actualiza al momento.</p>
+    </div>
+  </header>
+
+  <ol class="pasos" aria-label="Pasos">
+    <li>Tipo</li>
+    <li>Producto</li>
+    <li>Ubicación y cantidad</li>
+    <li>Confirmar</li>
+  </ol>
+
+  <form id="asistente" class="asistente" method="post" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="producto" value="{{ form.producto.value|default:'' }}">
+    <input type="hidden" name="crear_producto" value="{% if crear %}1{% else %}0{% endif %}">
+
+    {% if form.non_field_errors %}<div class="errores-form">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+
+    <!-- Paso 1: ¿Alta o baja? -->
+    <section class="paso" data-paso="1">
+      <h2 style="margin-bottom:16px">¿Qué vas a registrar?</h2>
+      <div class="opciones-tipo">
+        <label class="opcion-tipo opcion-tipo--alta">
+          <input type="radio" name="tipo" value="ALTA" {% if form.tipo.value == 'ALTA' %}checked{% endif %}>
+          <span class="opcion-tipo__caja">
+            <span class="opcion-tipo__icono"><svg class="i"><use href="#i-entrada"/></svg></span>
+            <h2>Alta</h2>
+            <span class="tenue">Llegó mercancía o regresó un producto. Suma al stock y se acomoda en una ubicación.</span>
+          </span>
+        </label>
+        <label class="opcion-tipo opcion-tipo--baja">
+          <input type="radio" name="tipo" value="BAJA" {% if form.tipo.value == 'BAJA' %}checked{% endif %}>
+          <span class="opcion-tipo__caja">
+            <span class="opcion-tipo__icono"><svg class="i"><use href="#i-salida"/></svg></span>
+            <h2>Baja</h2>
+            <span class="tenue">Venta, merma, caducidad o devolución. Descuenta de la ubicación donde está.</span>
+          </span>
+        </label>
+      </div>
+    </section>
+
+    <!-- Paso 2: recibir / seleccionar producto -->
+    <section class="paso" data-paso="2">
+      <h2 id="titulo-producto">Recibir producto</h2>
+      <p class="tenue" id="ayuda-producto" style="margin:4px 0 16px"></p>
+      <div class="campo">
+        <label class="buscador">
+          <svg class="i"><use href="#i-buscar"/></svg>
+          <input type="search" id="buscar-producto" autocomplete="off" placeholder="Ej. FA-0003, 7501234567890 o 5W-30" aria-label="Buscar producto">
+        </label>
+      </div>
+      <ul class="resultados" id="resultados" hidden></ul>
+      <div class="seleccion" id="seleccion" hidden></div>
+
+      <div class="bloque-nuevo" {% if not crear %}hidden{% endif %}>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px">
+          <h3 style="margin:0">Dar de alta producto nuevo</h3>
+          <button type="button" class="btn btn--fantasma btn--chico" id="cancelar-nuevo">Buscar otro</button>
+        </div>
+        <div class="rejilla-form">
+          {% include "inventario/_campo.html" with campo=nuevo.codigo %}
+          {% include "inventario/_campo.html" with campo=nuevo.codigo_barras %}
+          {% include "inventario/_campo.html" with campo=nuevo.nombre ancho=True %}
+          {% include "inventario/_campo.html" with campo=nuevo.categoria %}
+          {% include "inventario/_campo.html" with campo=nuevo.marca %}
+          {% include "inventario/_campo.html" with campo=nuevo.presentacion %}
+          {% include "inventario/_campo.html" with campo=nuevo.especificacion %}
+          {% include "inventario/_campo.html" with campo=nuevo.costo %}
+          {% include "inventario/_campo.html" with campo=nuevo.precio_venta %}
+          {% include "inventario/_campo.html" with campo=nuevo.punto_reorden %}
+        </div>
+      </div>
+
+      <div class="paso__nav">
+        <button type="button" class="btn btn--fantasma" data-atras>Atrás</button>
+        <button type="button" class="btn btn--primario" data-siguiente>Continuar</button>
+      </div>
+    </section>
+
+    <!-- Paso 3: asignar / descontar de ubicación -->
+    <section class="paso" data-paso="3">
+      <h2 id="titulo-ubicacion" style="margin-bottom:16px">Asignar ubicación</h2>
+      <div class="campo{% if form.ubicacion.errors %} campo--error{% endif %}">
+        <div class="ubic-opciones" role="radiogroup" aria-label="Ubicación">
+          {% for u in ubicaciones %}
+          <label class="ubic-opcion" data-descripcion="{{ u.descripcion }}">
+            <input type="radio" name="ubicacion" value="{{ u.pk }}" {% if form.ubicacion.value|stringformat:"s" == u.pk|stringformat:"s" %}checked{% endif %}>
+            <span style="--i: {{ forloop.counter0 }}"><strong>{{ u.codigo }}</strong><small>{{ u.descripcion|default:"Sin existencias" }}</small></span>
+          </label>
+          {% empty %}
+          <p class="tenue">No hay ubicaciones. <a href="{% url 'ubicaciones' %}">Agrega la primera</a>.</p>
+          {% endfor %}
+        </div>
+        {% for e in form.ubicacion.errors %}<p class="error">{{ e }}</p>{% endfor %}
+      </div>
+      <p class="tenue" id="sin-ubicaciones" hidden style="margin-top:10px">Este producto no tiene existencias en ninguna ubicación.</p>
+
+      <div class="rejilla-form" style="margin-top:22px">
+        <div class="campo{% if form.cantidad.errors %} campo--error{% endif %}">
+          <label for="id_cantidad">Cantidad</label>
+          <div class="cantidad">
+            <button type="button" data-paso-cantidad="-1" aria-label="Uno menos">−</button>
+            <input type="number" name="cantidad" id="id_cantidad" min="1" inputmode="numeric" value="{{ form.cantidad.value|default:1 }}">
+            <button type="button" data-paso-cantidad="1" aria-label="Uno más">+</button>
+          </div>
+          {% for e in form.cantidad.errors %}<p class="error">{{ e }}</p>{% endfor %}
+        </div>
+        <div class="campo{% if form.motivo.errors %} campo--error{% endif %}">
+          <label for="id_motivo">Motivo</label>
+          <select name="motivo" id="id_motivo"></select>
+          {% for e in form.motivo.errors %}<p class="error">{{ e }}</p>{% endfor %}
+        </div>
+        <div class="aviso ancho" id="aviso-stock" hidden style="margin-top:0"></div>
+        {% include "inventario/_campo.html" with campo=form.referencia %}
+        {% include "inventario/_campo.html" with campo=form.notas %}
+      </div>
+
+      <div class="paso__nav">
+        <button type="button" class="btn btn--fantasma" data-atras>Atrás</button>
+        <button type="button" class="btn btn--primario" data-siguiente>Revisar</button>
+      </div>
+    </section>
+
+    <!-- Paso 4: confirmar -->
+    <section class="paso" data-paso="4">
+      <h2 style="margin-bottom:16px">Revisa antes de registrar</h2>
+      <dl class="resumen" id="resumen"></dl>
+      <div class="aviso" id="aviso-reorden" hidden><svg class="i"><use href="#i-campana"/></svg><span>Con este movimiento el producto queda en su punto de reorden o por debajo. Al registrarlo se genera la alerta y se avisa a compras.</span></div>
+      <div class="paso__nav">
+        <button type="button" class="btn btn--fantasma" data-atras>Atrás</button>
+        <button type="submit" class="btn btn--primario" id="btn-enviar"><svg class="i"><use href="#i-check"/></svg> Registrar</button>
+      </div>
+    </section>
+  </form>
+</div>
+{{ estado_inicial|json_script:"estado-inicial" }}
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/movimiento.js' %}" defer></script>{% endblock %}

@@ -1,0 +1,10 @@
+{% if ordenes %}
+<ul class="lista">
+  {% for o in ordenes %}
+  <li>
+    <span class="crece"><a href="{% url destino o.pk %}"><strong>{{ o.folio }} · {{ o.vehiculo.cliente.nombre }}</strong></a><span class="muy-tenue">{{ o.vehiculo }} · {{ o.sintomas|truncatechars:80 }}</span></span>
+    <span class="chip chip--{{ o.color }}">{{ o.get_estado_display }}</span>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}<p class="tenue">{{ vacio }}</p>{% endif %}
